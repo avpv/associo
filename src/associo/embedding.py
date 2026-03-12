@@ -9,7 +9,7 @@ from sklearn.manifold import TSNE
 from associo._validation import validate_columns
 
 
-def compute_embedding(
+def embedding(
     df: pl.DataFrame | pl.LazyFrame,
     *,
     column_lhs: str,
@@ -32,7 +32,7 @@ def compute_embedding(
     -------
     DataFrame with columns ``item``, ``x``, ``y``.
     """
-    validate_columns(df, [column_lhs, column_rhs, column_distance], func_name="compute_embedding")
+    validate_columns(df, [column_lhs, column_rhs, column_distance], func_name="embedding")
 
     if isinstance(df, pl.LazyFrame):
         df = df.collect()

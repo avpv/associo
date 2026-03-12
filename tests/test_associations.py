@@ -3,7 +3,7 @@
 import polars as pl
 import pytest
 
-from associo.associations import compute_direct_associations, compute_combinatorial_associations
+from associo.associations import direct_associations, combinatorial_associations
 
 
 @pytest.fixture
@@ -17,7 +17,7 @@ def transaction_data():
 
 
 def test_direct_associations(transaction_data):
-    result = compute_direct_associations(
+    result = direct_associations(
         transaction_data,
         column_lhs="product",
         column_rhs="category",
@@ -38,7 +38,7 @@ def test_direct_associations(transaction_data):
 
 
 def test_direct_associations_all_pairs(transaction_data):
-    result = compute_direct_associations(
+    result = direct_associations(
         transaction_data,
         column_lhs="product",
         column_rhs="category",
@@ -54,7 +54,7 @@ def test_combinatorial_associations():
         "item": ["A", "B", "A", "C", "B", "C"],
         "tid": [1, 1, 2, 2, 3, 3],
     })
-    result = compute_combinatorial_associations(
+    result = combinatorial_associations(
         data, column_items="item", column_tid="tid",
     )
     assert result.shape[0] > 0
@@ -74,7 +74,7 @@ def test_combinatorial_with_self_pairs():
         "item": ["X", "Y"],
         "tid": [1, 1],
     })
-    result = compute_combinatorial_associations(
+    result = combinatorial_associations(
         data, column_items="item", column_tid="tid", include_self_pairs=True,
     )
     # Should include X→X, X→Y, Y→X, Y→Y
@@ -86,7 +86,7 @@ def test_combinatorial_without_self_pairs():
         "item": ["X", "Y"],
         "tid": [1, 1],
     })
-    result = compute_combinatorial_associations(
+    result = combinatorial_associations(
         data, column_items="item", column_tid="tid",
     )
     # Only X→Y, Y→X

@@ -5,7 +5,7 @@ from __future__ import annotations
 import polars as pl
 
 from associo._validation import validate_columns
-from associo.measures import calculate_association_measures
+from associo.measures import association_measures
 
 
 def _aggregate_counts(
@@ -73,7 +73,7 @@ def _aggregate_counts(
     return result
 
 
-def compute_direct_associations(
+def direct_associations(
     df: pl.DataFrame | pl.LazyFrame,
     *,
     column_lhs: str,
@@ -96,7 +96,7 @@ def compute_direct_associations(
     -------
     DataFrame with all association measures for each (lhs, rhs) pair.
     """
-    validate_columns(df, [column_lhs, column_rhs, column_tid], func_name="compute_direct_associations")
+    validate_columns(df, [column_lhs, column_rhs, column_tid], func_name="direct_associations")
 
     lf = df.lazy() if isinstance(df, pl.DataFrame) else df
 
@@ -112,10 +112,10 @@ def compute_direct_associations(
 
     counts = _aggregate_counts(lhs_rhs_distinct, lhs_distinct, rhs_distinct, all_pairs=all_pairs)
 
-    return calculate_association_measures(counts)
+    return association_measures(counts)
 
 
-def compute_combinatorial_associations(
+def combinatorial_associations(
     df: pl.DataFrame | pl.LazyFrame,
     *,
     column_items: str,
@@ -139,7 +139,7 @@ def compute_combinatorial_associations(
     -------
     DataFrame with all association measures for every (lhs, rhs) combination.
     """
-    validate_columns(df, [column_items, column_tid], func_name="compute_combinatorial_associations")
+    validate_columns(df, [column_items, column_tid], func_name="combinatorial_associations")
 
     lf = df.lazy() if isinstance(df, pl.DataFrame) else df
 
@@ -163,4 +163,4 @@ def compute_combinatorial_associations(
 
     counts = _aggregate_counts(lhs_rhs_distinct, lhs_distinct, rhs_distinct, all_pairs=all_pairs)
 
-    return calculate_association_measures(counts)
+    return association_measures(counts)

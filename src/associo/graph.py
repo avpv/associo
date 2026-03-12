@@ -50,7 +50,7 @@ def _result_df(records: list[dict], columns: list[str]) -> pl.DataFrame:
 # Affinity Propagation clustering
 # ---------------------------------------------------------------------------
 
-def compute_clusters(
+def clusters(
     df: pl.DataFrame | pl.LazyFrame,
     *,
     column_lhs: str,
@@ -72,7 +72,7 @@ def compute_clusters(
     -------
     DataFrame with columns ``item``, ``cluster_label``.
     """
-    validate_columns(df, [column_lhs, column_rhs, column_similarity], func_name="compute_clusters")
+    validate_columns(df, [column_lhs, column_rhs, column_similarity], func_name="clusters")
 
     if isinstance(df, pl.LazyFrame):
         df = df.collect()
@@ -120,7 +120,7 @@ def compute_clusters(
 # Louvain communities
 # ---------------------------------------------------------------------------
 
-def compute_communities(
+def communities(
     df: pl.DataFrame | pl.LazyFrame,
     *,
     column_lhs: str,
@@ -158,7 +158,7 @@ def compute_communities(
 # Maximal cliques
 # ---------------------------------------------------------------------------
 
-def compute_maximal_cliques(
+def maximal_cliques(
     df: pl.DataFrame | pl.LazyFrame,
     *,
     column_lhs: str,
@@ -192,7 +192,7 @@ def compute_maximal_cliques(
 # K-clique communities
 # ---------------------------------------------------------------------------
 
-def compute_k_clique_communities(
+def k_clique_communities(
     df: pl.DataFrame | pl.LazyFrame,
     *,
     column_lhs: str,
@@ -229,7 +229,7 @@ def compute_k_clique_communities(
 # Connected components
 # ---------------------------------------------------------------------------
 
-def compute_connected_components(
+def connected_components(
     df: pl.DataFrame | pl.LazyFrame,
     *,
     column_lhs: str,
@@ -261,7 +261,7 @@ def compute_connected_components(
 # Label propagation (non-overlapping)
 # ---------------------------------------------------------------------------
 
-def compute_label_propagation(
+def label_propagation(
     df: pl.DataFrame | pl.LazyFrame,
     *,
     column_lhs: str,
@@ -295,7 +295,7 @@ def compute_label_propagation(
 # Label propagation overlapping (SLPA-like)
 # ---------------------------------------------------------------------------
 
-def compute_label_propagation_overlapping(
+def label_propagation_overlapping(
     df: pl.DataFrame | pl.LazyFrame,
     *,
     column_lhs: str,

@@ -16,7 +16,7 @@ import math
 import polars as pl
 import pytest
 
-from associo.measures import calculate_association_measures
+from associo.measures import association_measures
 
 
 @pytest.fixture
@@ -28,7 +28,7 @@ def ref():
         "rhs_total_count": [40],
         "total_count": [100],
     })
-    result = calculate_association_measures(df)
+    result = association_measures(df)
     return result.row(0, named=True)
 
 
@@ -269,10 +269,10 @@ def test_missing_column_raises():
     """Clear error when a required column is missing."""
     df = pl.DataFrame({"a": [1], "b": [2], "c": [3]})
     with pytest.raises(ValueError, match="missing columns"):
-        calculate_association_measures(df)
+        association_measures(df)
 
 
 def test_missing_column_mentions_function_name():
     df = pl.DataFrame({"x": [1]})
-    with pytest.raises(ValueError, match="calculate_association_measures"):
-        calculate_association_measures(df)
+    with pytest.raises(ValueError, match="association_measures"):
+        association_measures(df)

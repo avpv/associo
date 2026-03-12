@@ -265,7 +265,7 @@ def _stage2_derived() -> dict[str, pl.Expr]:
     }
 
 
-def calculate_association_measures(
+def association_measures(
     df: pl.DataFrame | pl.LazyFrame,
     *,
     col_lhs_rhs_count: str = "lhs_rhs_count",
@@ -307,7 +307,7 @@ def calculate_association_measures(
     validate_columns(
         df,
         [col_lhs_rhs_count, col_lhs_total_count, col_rhs_total_count, col_total_count],
-        func_name="calculate_association_measures",
+        func_name="association_measures",
     )
 
     lf = df.lazy() if isinstance(df, pl.DataFrame) else df

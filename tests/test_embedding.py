@@ -3,10 +3,10 @@
 import polars as pl
 import pytest
 
-from associo.embedding import compute_embedding
+from associo.embedding import embedding
 
 
-def test_compute_embedding():
+def test_embedding():
     # 5 items needed (perplexity < n_samples)
     items = ["A", "B", "C", "D", "E"]
     rows = []
@@ -16,7 +16,7 @@ def test_compute_embedding():
             rows.append({"lhs": a, "rhs": b, "distance": dist})
 
     df = pl.DataFrame(rows)
-    result = compute_embedding(
+    result = embedding(
         df,
         column_lhs="lhs",
         column_rhs="rhs",

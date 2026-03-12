@@ -4,13 +4,13 @@ import polars as pl
 import pytest
 
 from associo.graph import (
-    compute_clusters,
-    compute_communities,
-    compute_maximal_cliques,
-    compute_k_clique_communities,
-    compute_connected_components,
-    compute_label_propagation,
-    compute_label_propagation_overlapping,
+    clusters,
+    communities,
+    maximal_cliques,
+    k_clique_communities,
+    connected_components,
+    label_propagation,
+    label_propagation_overlapping,
 )
 
 
@@ -24,8 +24,8 @@ def edge_data():
     })
 
 
-def test_compute_clusters(edge_data):
-    result = compute_clusters(
+def test_clusters(edge_data):
+    result = clusters(
         edge_data,
         column_lhs="lhs",
         column_rhs="rhs",
@@ -36,8 +36,8 @@ def test_compute_clusters(edge_data):
     assert result.shape[0] > 0
 
 
-def test_compute_communities(edge_data):
-    result = compute_communities(
+def test_communities(edge_data):
+    result = communities(
         edge_data,
         column_lhs="lhs",
         column_rhs="rhs",
@@ -49,8 +49,8 @@ def test_compute_communities(edge_data):
     assert {"A", "B", "C", "D", "E", "F"}.issubset(items)
 
 
-def test_compute_maximal_cliques(edge_data):
-    result = compute_maximal_cliques(
+def test_maximal_cliques(edge_data):
+    result = maximal_cliques(
         edge_data,
         column_lhs="lhs",
         column_rhs="rhs",
@@ -64,8 +64,8 @@ def test_compute_maximal_cliques(edge_data):
     assert result.shape[0] >= 3
 
 
-def test_compute_k_clique_communities(edge_data):
-    result = compute_k_clique_communities(
+def test_k_clique_communities(edge_data):
+    result = k_clique_communities(
         edge_data,
         column_lhs="lhs",
         column_rhs="rhs",
@@ -77,8 +77,8 @@ def test_compute_k_clique_communities(edge_data):
     assert "community_label" in result.columns
 
 
-def test_compute_connected_components(edge_data):
-    result = compute_connected_components(
+def test_connected_components(edge_data):
+    result = connected_components(
         edge_data,
         column_lhs="lhs",
         column_rhs="rhs",
@@ -92,8 +92,8 @@ def test_compute_connected_components(edge_data):
     assert labels.shape[0] == 2
 
 
-def test_compute_label_propagation(edge_data):
-    result = compute_label_propagation(
+def test_label_propagation(edge_data):
+    result = label_propagation(
         edge_data,
         column_lhs="lhs",
         column_rhs="rhs",
@@ -104,8 +104,8 @@ def test_compute_label_propagation(edge_data):
     assert result.shape[0] == 6
 
 
-def test_compute_label_propagation_overlapping(edge_data):
-    result = compute_label_propagation_overlapping(
+def test_label_propagation_overlapping(edge_data):
+    result = label_propagation_overlapping(
         edge_data,
         column_lhs="lhs",
         column_rhs="rhs",
@@ -122,7 +122,7 @@ def test_empty_graph():
     empty = pl.DataFrame({"lhs": [], "rhs": [], "similarity": []}).cast({
         "lhs": pl.Utf8, "rhs": pl.Utf8, "similarity": pl.Float64,
     })
-    r1 = compute_communities(empty, column_lhs="lhs", column_rhs="rhs", column_similarity="similarity")
+    r1 = communities(empty, column_lhs="lhs", column_rhs="rhs", column_similarity="similarity")
     assert r1.shape[0] == 0
-    r2 = compute_connected_components(empty, column_lhs="lhs", column_rhs="rhs", column_similarity="similarity")
+    r2 = connected_components(empty, column_lhs="lhs", column_rhs="rhs", column_similarity="similarity")
     assert r2.shape[0] == 0
