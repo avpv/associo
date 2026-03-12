@@ -5,7 +5,7 @@ import math
 import polars as pl
 import pytest
 
-from associo.measures import calculate_association_measures
+from associo.measures import calculate_association_measures, ALL_MEASURES
 
 
 @pytest.fixture
@@ -117,3 +117,28 @@ def test_all_columns_present(simple_counts):
         "fisher_transformation_confidence", "fisher_transformation_reverse_confidence",
     }
     assert expected_cols.issubset(set(result.columns))
+
+
+def test_selective_measures(simple_counts):
+    """Only compute a subset of measures."""
+    result = calculate_association_measures(
+        simple_counts, measures=["support", "confidence", "lift"],
+    )
+    row = result.row(0, named=True)
+    assert "support" in result.columns
+    assert "confidence" in result.columns
+    assert "lift" in result.columns
+    # Should NOT have other measures
+    assert "jaccard" not in result.columns
+    assert "odds_ratio" not in result.columns
+
+
+def test_unknown_measure_raises(simple_counts):
+    with pytest.raises(ValueError, match="Unknown measures"):
+        calculate_association_measures(simple_counts, measures=["nonexistent_metric"])
+
+
+def test_all_measures_constant():
+    assert "support" in ALL_MEASURES
+    assert "lift" in ALL_MEASURES
+    assert len(ALL_MEASURES) > 60

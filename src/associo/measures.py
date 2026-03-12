@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from typing import Sequence
+
 import polars as pl
-import math
 
 
 ROUND_PRECISION = 6
@@ -19,35 +20,38 @@ def _laplace(num: pl.Expr, den: pl.Expr) -> pl.Expr:
     return _safe_div(num + 2, den + 4)
 
 
-def calculate_association_measures(
-    df: pl.DataFrame | pl.LazyFrame,
-    *,
-    col_lhs_rhs_count: str = "lhs_rhs_count",
-    col_lhs_total_count: str = "lhs_total_count",
-    col_rhs_total_count: str = "rhs_total_count",
-    col_total_count: str = "total_count",
-) -> pl.DataFrame:
-    """Calculate the full set of association measures from pre-aggregated counts.
+# All available measure names for validation and selection
+ALL_MEASURES: frozenset[str] = frozenset({
+    "lhs_not_rhs_count", "not_lhs_rhs_count", "not_lhs_not_rhs_count",
+    "support", "coverage", "prevalence", "confidence", "reverse_confidence",
+    "lift", "leverage", "confidence_laplace",
+    "confidence_lower", "confidence_upper",
+    "confidence_lower_laplace", "confidence_upper_laplace",
+    "zhangs_metric", "importance", "importance_laplace",
+    "added_value", "improvement", "cosine", "conviction",
+    "jaccard", "kulczynski", "klosgen", "relative_difference",
+    "rule_power_factor", "weight_of_evidence",
+    "casual_confidence", "casual_support", "confirmed_confidence",
+    "counter_example_rate", "implication_index", "lambda",
+    "least_contradiction", "lerman_similarity", "lift_increase",
+    "mutual_information", "relative_linkage_disequilibrium",
+    "relative_risk", "standardized_lift", "sebag_schoenauer",
+    "varying_rates_liaison", "support_vrl", "collective_strength",
+    "confidence_boost", "odds_ratio", "odds_ratio_lower", "odds_ratio_upper",
+    "certainty_factor", "imbalance_ratio", "gini_index",
+    "hyper_confidence", "hyper_lift",
+    "chi_squared", "p_value_approximation", "local_chi_squared",
+    "phi_coefficient", "yules_q", "yules_y", "kappa", "j_measure",
+    "difference_of_confidence", "hamming", "rogers_tanimoto",
+    "sokal_michener", "sokal_sneath", "interestingness", "comprehensibility",
+    "fisher_transformation_confidence", "fisher_transformation_reverse_confidence",
+})
 
-    Parameters
-    ----------
-    df : DataFrame/LazyFrame with columns for the four counts.
-    col_lhs_rhs_count : Column with count(lhs ∩ rhs).
-    col_lhs_total_count : Column with count(lhs).
-    col_rhs_total_count : Column with count(rhs).
-    col_total_count : Column with total transaction count.
 
-    Returns
-    -------
-    DataFrame with all association measure columns appended.
-    """
-    lf = df.lazy() if isinstance(df, pl.DataFrame) else df
-
-    # Aliases for readability
-    ab = pl.col(col_lhs_rhs_count).cast(pl.Float64)
-    a = pl.col(col_lhs_total_count).cast(pl.Float64)
-    b = pl.col(col_rhs_total_count).cast(pl.Float64)
-    n = pl.col(col_total_count).cast(pl.Float64)
+def _build_all_measures(
+    ab: pl.Expr, a: pl.Expr, b: pl.Expr, n: pl.Expr,
+) -> dict[str, pl.Expr]:
+    """Build a dict of measure_name → Polars expression."""
 
     # Contingency table cells
     a_not_b = (a - ab).clip(lower_bound=0)
@@ -56,7 +60,7 @@ def calculate_association_measures(
     not_a_total = (n - a).clip(lower_bound=0)
     not_b_total = (n - b).clip(lower_bound=0)
 
-    # Basic measures
+    # Basic
     support = _safe_div(ab, n)
     coverage = _safe_div(a, n)
     prevalence = _safe_div(b, n)
@@ -65,10 +69,8 @@ def calculate_association_measures(
     lift = _safe_div(confidence, prevalence)
     leverage = support - coverage * prevalence
 
-    # Laplace smoothed confidence
     confidence_laplace = _laplace(ab, a)
 
-    # Confidence intervals (z=1.96)
     z = 1.96
     se = (confidence * (pl.lit(1.0) - confidence) / a).sqrt()
     confidence_lower = confidence - z * se
@@ -78,15 +80,12 @@ def calculate_association_measures(
     confidence_lower_laplace = confidence_laplace - z * se_lap
     confidence_upper_laplace = confidence_laplace + z * se_lap
 
-    # Directional confidences
     conf_lhs_to_not_rhs = _safe_div(a_not_b, a)
     conf_not_lhs_to_rhs = _safe_div(not_a_b, not_a_total)
 
-    # Zhang's metric
     max_conf = pl.max_horizontal(confidence, conf_not_lhs_to_rhs)
     zhangs_metric = _safe_div(confidence - conf_not_lhs_to_rhs, max_conf)
 
-    # Importance (log10)
     importance = _safe_div(confidence, conf_lhs_to_not_rhs).log(base=10)
     importance_laplace = (_laplace(ab, a) / _laplace(a_not_b, a)).log(base=10)
 
@@ -100,16 +99,13 @@ def calculate_association_measures(
     relative_difference = _safe_div(confidence - prevalence, prevalence)
     rule_power_factor = support * confidence
 
-    # Weight of evidence
     woe_num = _laplace(ab, b)
     woe_den = _laplace(a_not_b, not_b_total)
     weight_of_evidence = woe_num.log() - woe_den.log()
 
-    # Casual confidence
     complementary_conf = _safe_div(not_a_not_b, not_a_total)
     casual_confidence = pl.lit(0.5) * (confidence + complementary_conf)
 
-    # Casual support
     support_union = coverage + prevalence - support
     casual_support = support_union + (pl.lit(1.0) - support)
 
@@ -117,22 +113,18 @@ def calculate_association_measures(
     counter_example_rate = _safe_div(ab + not_a_b, n)
     implication_index = _safe_div(support - coverage * prevalence, (coverage * prevalence).sqrt())
 
-    # Lambda
     baseline_error = pl.lit(1.0) - pl.max_horizontal(prevalence, pl.lit(1.0) - prevalence)
     conditional_error = pl.lit(1.0) - pl.max_horizontal(confidence, conf_not_lhs_to_rhs)
     lambda_measure = _safe_div(baseline_error - conditional_error, baseline_error)
 
-    # Least contradiction
     support_union_not_y = (pl.lit(1.0) - prevalence) + support
     least_contradiction = _safe_div(support_union - support_union_not_y, prevalence)
 
-    # Lerman similarity
     lerman_similarity = _safe_div(support_union - coverage * prevalence, (coverage * prevalence).sqrt())
 
     lift_increase = _safe_div(lift - pl.lit(1.0), prevalence)
     mutual_information = support * (support / (coverage * prevalence)).log(base=2)
 
-    # Relative linkage disequilibrium
     d_val = ab * not_a_not_b - a_not_b * not_a_b
     min_pos = pl.min_horizontal(a_not_b, not_a_b)
     min_neg = pl.min_horizontal(ab, not_a_not_b)
@@ -151,18 +143,14 @@ def calculate_association_measures(
 
     confidence_boost = _safe_div(confidence, confidence - improvement)
 
-    # Odds ratio with Haldane correction (+0.5)
     ah = ab + 0.5
     bh = a_not_b + 0.5
     ch = not_a_b + 0.5
     dh = not_a_not_b + 0.5
     odds_ratio = _safe_div(ah * dh, bh * ch)
 
-    # Odds ratio CI
     log_or = odds_ratio.log()
-    se_or = (
-        pl.lit(1.0) / ah + pl.lit(1.0) / bh + pl.lit(1.0) / ch + pl.lit(1.0) / dh
-    ).sqrt()
+    se_or = (pl.lit(1.0) / ah + pl.lit(1.0) / bh + pl.lit(1.0) / ch + pl.lit(1.0) / dh).sqrt()
     odds_ratio_lower = (log_or - z * se_or).exp()
     odds_ratio_upper = (log_or + z * se_or).exp()
 
@@ -172,7 +160,6 @@ def calculate_association_measures(
     hyper_confidence = _safe_div(confidence, conf_lhs_to_not_rhs)
     hyper_lift = _safe_div(confidence, conf_not_lhs_to_rhs)
 
-    # Chi-squared
     exp_ab = coverage * prevalence * n
     exp_a_not_b = coverage * (pl.lit(1.0) - prevalence) * n
     exp_not_a_b = (pl.lit(1.0) - coverage) * prevalence * n
@@ -188,7 +175,6 @@ def calculate_association_measures(
     )
 
     p_value_approx = (-chi_sq / 2).exp()
-
     local_chi_sq = _safe_div((support * n - exp_ab).pow(2), exp_ab)
 
     phi_coefficient = _safe_div(
@@ -203,7 +189,6 @@ def calculate_association_measures(
     expected_agreement = coverage * prevalence + (pl.lit(1.0) - coverage) * (pl.lit(1.0) - prevalence)
     kappa = _safe_div(observed_agreement - expected_agreement, pl.lit(1.0) - expected_agreement)
 
-    # J-measure
     support_lhs_not_rhs = coverage - support
     j_rhs = support * (confidence / prevalence).log(base=2)
     j_not_rhs = support_lhs_not_rhs * (conf_lhs_to_not_rhs / (pl.lit(1.0) - prevalence)).log(base=2)
@@ -221,80 +206,124 @@ def calculate_association_measures(
     fisher_conf = pl.lit(2.0) * confidence.sqrt().arcsin()
     fisher_rev_conf = pl.lit(2.0) * reverse_confidence.sqrt().arcsin()
 
-    result = lf.with_columns(
-        # Contingency cells
-        a_not_b.round(ROUND_PRECISION).alias("lhs_not_rhs_count"),
-        not_a_b.round(ROUND_PRECISION).alias("not_lhs_rhs_count"),
-        not_a_not_b.round(ROUND_PRECISION).alias("not_lhs_not_rhs_count"),
-        # Measures
-        support.round(ROUND_PRECISION).alias("support"),
-        coverage.round(ROUND_PRECISION).alias("coverage"),
-        prevalence.round(ROUND_PRECISION).alias("prevalence"),
-        confidence.round(ROUND_PRECISION).alias("confidence"),
-        reverse_confidence.round(ROUND_PRECISION).alias("reverse_confidence"),
-        lift.round(ROUND_PRECISION).alias("lift"),
-        leverage.round(ROUND_PRECISION).alias("leverage"),
-        confidence_laplace.round(ROUND_PRECISION).alias("confidence_laplace"),
-        confidence_lower.round(ROUND_PRECISION).alias("confidence_lower"),
-        confidence_upper.round(ROUND_PRECISION).alias("confidence_upper"),
-        confidence_lower_laplace.round(ROUND_PRECISION).alias("confidence_lower_laplace"),
-        confidence_upper_laplace.round(ROUND_PRECISION).alias("confidence_upper_laplace"),
-        zhangs_metric.round(ROUND_PRECISION).alias("zhangs_metric"),
-        importance.round(ROUND_PRECISION).alias("importance"),
-        importance_laplace.round(ROUND_PRECISION).alias("importance_laplace"),
-        added_value.round(ROUND_PRECISION).alias("added_value"),
-        improvement.round(ROUND_PRECISION).alias("improvement"),
-        cosine.round(ROUND_PRECISION).alias("cosine"),
-        conviction.round(ROUND_PRECISION).alias("conviction"),
-        jaccard.round(ROUND_PRECISION).alias("jaccard"),
-        kulczynski.round(ROUND_PRECISION).alias("kulczynski"),
-        klosgen.round(ROUND_PRECISION).alias("klosgen"),
-        relative_difference.round(ROUND_PRECISION).alias("relative_difference"),
-        rule_power_factor.round(ROUND_PRECISION).alias("rule_power_factor"),
-        weight_of_evidence.round(ROUND_PRECISION).alias("weight_of_evidence"),
-        casual_confidence.round(ROUND_PRECISION).alias("casual_confidence"),
-        casual_support.round(ROUND_PRECISION).alias("casual_support"),
-        confirmed_confidence.round(ROUND_PRECISION).alias("confirmed_confidence"),
-        counter_example_rate.round(ROUND_PRECISION).alias("counter_example_rate"),
-        implication_index.round(ROUND_PRECISION).alias("implication_index"),
-        lambda_measure.round(ROUND_PRECISION).alias("lambda"),
-        least_contradiction.round(ROUND_PRECISION).alias("least_contradiction"),
-        lerman_similarity.round(ROUND_PRECISION).alias("lerman_similarity"),
-        lift_increase.round(ROUND_PRECISION).alias("lift_increase"),
-        mutual_information.round(ROUND_PRECISION).alias("mutual_information"),
-        rld.round(ROUND_PRECISION).alias("relative_linkage_disequilibrium"),
-        relative_risk.round(ROUND_PRECISION).alias("relative_risk"),
-        standardized_lift.round(ROUND_PRECISION).alias("standardized_lift"),
-        sebag_schoenauer.round(ROUND_PRECISION).alias("sebag_schoenauer"),
-        varying_rates_liaison.round(ROUND_PRECISION).alias("varying_rates_liaison"),
-        support_vrl.round(ROUND_PRECISION).alias("support_vrl"),
-        collective_strength.round(ROUND_PRECISION).alias("collective_strength"),
-        confidence_boost.round(ROUND_PRECISION).alias("confidence_boost"),
-        odds_ratio.round(ROUND_PRECISION).alias("odds_ratio"),
-        odds_ratio_lower.round(ROUND_PRECISION).alias("odds_ratio_lower"),
-        odds_ratio_upper.round(ROUND_PRECISION).alias("odds_ratio_upper"),
-        certainty_factor.round(ROUND_PRECISION).alias("certainty_factor"),
-        imbalance_ratio.round(ROUND_PRECISION).alias("imbalance_ratio"),
-        gini_index.round(ROUND_PRECISION).alias("gini_index"),
-        hyper_confidence.round(ROUND_PRECISION).alias("hyper_confidence"),
-        hyper_lift.round(ROUND_PRECISION).alias("hyper_lift"),
-        chi_sq.round(ROUND_PRECISION).alias("chi_squared"),
-        p_value_approx.round(ROUND_PRECISION).alias("p_value_approximation"),
-        local_chi_sq.round(ROUND_PRECISION).alias("local_chi_squared"),
-        phi_coefficient.round(ROUND_PRECISION).alias("phi_coefficient"),
-        yules_q.round(ROUND_PRECISION).alias("yules_q"),
-        yules_y.round(ROUND_PRECISION).alias("yules_y"),
-        kappa.round(ROUND_PRECISION).alias("kappa"),
-        j_measure.round(ROUND_PRECISION).alias("j_measure"),
-        difference_of_confidence.round(ROUND_PRECISION).alias("difference_of_confidence"),
-        hamming.round(ROUND_PRECISION).alias("hamming"),
-        rogers_tanimoto.round(ROUND_PRECISION).alias("rogers_tanimoto"),
-        sokal_michener.round(ROUND_PRECISION).alias("sokal_michener"),
-        sokal_sneath.round(ROUND_PRECISION).alias("sokal_sneath"),
-        interestingness.round(ROUND_PRECISION).alias("interestingness"),
-        comprehensibility.round(ROUND_PRECISION).alias("comprehensibility"),
-        fisher_conf.round(ROUND_PRECISION).alias("fisher_transformation_confidence"),
-        fisher_rev_conf.round(ROUND_PRECISION).alias("fisher_transformation_reverse_confidence"),
-    )
+    return {
+        "lhs_not_rhs_count": a_not_b,
+        "not_lhs_rhs_count": not_a_b,
+        "not_lhs_not_rhs_count": not_a_not_b,
+        "support": support,
+        "coverage": coverage,
+        "prevalence": prevalence,
+        "confidence": confidence,
+        "reverse_confidence": reverse_confidence,
+        "lift": lift,
+        "leverage": leverage,
+        "confidence_laplace": confidence_laplace,
+        "confidence_lower": confidence_lower,
+        "confidence_upper": confidence_upper,
+        "confidence_lower_laplace": confidence_lower_laplace,
+        "confidence_upper_laplace": confidence_upper_laplace,
+        "zhangs_metric": zhangs_metric,
+        "importance": importance,
+        "importance_laplace": importance_laplace,
+        "added_value": added_value,
+        "improvement": improvement,
+        "cosine": cosine,
+        "conviction": conviction,
+        "jaccard": jaccard,
+        "kulczynski": kulczynski,
+        "klosgen": klosgen,
+        "relative_difference": relative_difference,
+        "rule_power_factor": rule_power_factor,
+        "weight_of_evidence": weight_of_evidence,
+        "casual_confidence": casual_confidence,
+        "casual_support": casual_support,
+        "confirmed_confidence": confirmed_confidence,
+        "counter_example_rate": counter_example_rate,
+        "implication_index": implication_index,
+        "lambda": lambda_measure,
+        "least_contradiction": least_contradiction,
+        "lerman_similarity": lerman_similarity,
+        "lift_increase": lift_increase,
+        "mutual_information": mutual_information,
+        "relative_linkage_disequilibrium": rld,
+        "relative_risk": relative_risk,
+        "standardized_lift": standardized_lift,
+        "sebag_schoenauer": sebag_schoenauer,
+        "varying_rates_liaison": varying_rates_liaison,
+        "support_vrl": support_vrl,
+        "collective_strength": collective_strength,
+        "confidence_boost": confidence_boost,
+        "odds_ratio": odds_ratio,
+        "odds_ratio_lower": odds_ratio_lower,
+        "odds_ratio_upper": odds_ratio_upper,
+        "certainty_factor": certainty_factor,
+        "imbalance_ratio": imbalance_ratio,
+        "gini_index": gini_index,
+        "hyper_confidence": hyper_confidence,
+        "hyper_lift": hyper_lift,
+        "chi_squared": chi_sq,
+        "p_value_approximation": p_value_approx,
+        "local_chi_squared": local_chi_sq,
+        "phi_coefficient": phi_coefficient,
+        "yules_q": yules_q,
+        "yules_y": yules_y,
+        "kappa": kappa,
+        "j_measure": j_measure,
+        "difference_of_confidence": difference_of_confidence,
+        "hamming": hamming,
+        "rogers_tanimoto": rogers_tanimoto,
+        "sokal_michener": sokal_michener,
+        "sokal_sneath": sokal_sneath,
+        "interestingness": interestingness,
+        "comprehensibility": comprehensibility,
+        "fisher_transformation_confidence": fisher_conf,
+        "fisher_transformation_reverse_confidence": fisher_rev_conf,
+    }
+
+
+def calculate_association_measures(
+    df: pl.DataFrame | pl.LazyFrame,
+    *,
+    col_lhs_rhs_count: str = "lhs_rhs_count",
+    col_lhs_total_count: str = "lhs_total_count",
+    col_rhs_total_count: str = "rhs_total_count",
+    col_total_count: str = "total_count",
+    measures: Sequence[str] | None = None,
+) -> pl.DataFrame:
+    """Calculate association measures from pre-aggregated counts.
+
+    Parameters
+    ----------
+    df : DataFrame/LazyFrame with columns for the four counts.
+    col_lhs_rhs_count : Column with count(lhs ∩ rhs).
+    col_lhs_total_count : Column with count(lhs).
+    col_rhs_total_count : Column with count(rhs).
+    col_total_count : Column with total transaction count.
+    measures : Subset of measure names to compute. None = all measures.
+        Use ``associo.measures.ALL_MEASURES`` to see available names.
+
+    Returns
+    -------
+    DataFrame with selected association measure columns appended.
+    """
+    lf = df.lazy() if isinstance(df, pl.DataFrame) else df
+
+    ab = pl.col(col_lhs_rhs_count).cast(pl.Float64)
+    a = pl.col(col_lhs_total_count).cast(pl.Float64)
+    b = pl.col(col_rhs_total_count).cast(pl.Float64)
+    n = pl.col(col_total_count).cast(pl.Float64)
+
+    all_exprs = _build_all_measures(ab, a, b, n)
+
+    if measures is not None:
+        unknown = set(measures) - ALL_MEASURES
+        if unknown:
+            raise ValueError(f"Unknown measures: {unknown}. Available: {sorted(ALL_MEASURES)}")
+        selected = {k: v for k, v in all_exprs.items() if k in set(measures)}
+    else:
+        selected = all_exprs
+
+    columns = [expr.round(ROUND_PRECISION).alias(name) for name, expr in selected.items()]
+    result = lf.with_columns(columns)
 
     return result.collect()

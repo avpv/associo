@@ -37,6 +37,18 @@ def test_direct_associations(transaction_data):
     assert row["confidence"] == pytest.approx(1.0, abs=1e-5)  # bread always in food
 
 
+def test_direct_associations_all_pairs(transaction_data):
+    result = compute_direct_associations(
+        transaction_data,
+        column_lhs="product",
+        column_rhs="category",
+        column_tid="order_id",
+        all_pairs=True,
+    )
+    # 3 products × 2 categories = 6 pairs (including non-co-occurring)
+    assert result.shape[0] == 6
+
+
 def test_combinatorial_associations():
     data = pl.DataFrame({
         "item": ["A", "B", "A", "C", "B", "C"],
@@ -46,6 +58,10 @@ def test_combinatorial_associations():
         data, column_items="item", column_tid="tid",
     )
     assert result.shape[0] > 0
+    # Self-pairs excluded by default
+    self_pairs = result.filter(pl.col("lhs") == pl.col("rhs"))
+    assert self_pairs.shape[0] == 0
+
     # A,B,C each appear in 2 out of 3 transactions
     # All pairs co-occur in 1 out of 3 transactions
     ab = result.filter((pl.col("lhs") == "A") & (pl.col("rhs") == "B"))
@@ -53,7 +69,19 @@ def test_combinatorial_associations():
     assert ab.row(0, named=True)["support"] == pytest.approx(1 / 3, abs=1e-5)
 
 
-def test_combinatorial_includes_self_pairs():
+def test_combinatorial_with_self_pairs():
+    data = pl.DataFrame({
+        "item": ["X", "Y"],
+        "tid": [1, 1],
+    })
+    result = compute_combinatorial_associations(
+        data, column_items="item", column_tid="tid", include_self_pairs=True,
+    )
+    # Should include X→X, X→Y, Y→X, Y→Y
+    assert result.shape[0] == 4
+
+
+def test_combinatorial_without_self_pairs():
     data = pl.DataFrame({
         "item": ["X", "Y"],
         "tid": [1, 1],
@@ -61,5 +89,5 @@ def test_combinatorial_includes_self_pairs():
     result = compute_combinatorial_associations(
         data, column_items="item", column_tid="tid",
     )
-    # Should include X→X, X→Y, Y→X, Y→Y
-    assert result.shape[0] == 4
+    # Only X→Y, Y→X
+    assert result.shape[0] == 2

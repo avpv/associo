@@ -33,14 +33,32 @@ def compute_embedding(
     if isinstance(df, pl.LazyFrame):
         df = df.collect()
 
-    pivot = df.pivot(
-        on=column_rhs,
-        index=column_lhs,
-        values=column_distance,
-    ).fill_null(1.0)
+    # Symmetrise: take min distance for each pair (distance is symmetric)
+    forward = df.select(
+        pl.col(column_lhs).alias("a"),
+        pl.col(column_rhs).alias("b"),
+        pl.col(column_distance).alias("dist"),
+    )
+    reverse = df.select(
+        pl.col(column_rhs).alias("a"),
+        pl.col(column_lhs).alias("b"),
+        pl.col(column_distance).alias("dist"),
+    )
+    sym = pl.concat([forward, reverse]).group_by("a", "b").agg(pl.col("dist").min()).sort("a", "b")
 
-    items = pivot[column_lhs].to_list()
-    mat = pivot.drop(column_lhs).to_numpy()
+    all_items = sorted(set(sym["a"].to_list()) | set(sym["b"].to_list()))
+
+    pivot = sym.pivot(on="b", index="a", values="dist").fill_null(1.0)
+    # Ensure all items appear as columns and self-distance is 0
+    for item in all_items:
+        if item not in pivot.columns:
+            pivot = pivot.with_columns(pl.lit(1.0).alias(item))
+    pivot = pivot.sort("a")
+
+    items = pivot["a"].to_list()
+    mat = pivot.select(items).to_numpy()
+    # Ensure diagonal is 0 (self-distance)
+    np.fill_diagonal(mat, 0.0)
 
     tsne = TSNE(
         n_components=2,

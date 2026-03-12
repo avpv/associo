@@ -1,6 +1,6 @@
 """Associo — high-performance association analysis library built on Polars."""
 
-from associo.measures import calculate_association_measures
+from associo.measures import calculate_association_measures, ALL_MEASURES
 from associo.associations import compute_direct_associations, compute_combinatorial_associations
 from associo.graph import (
     compute_clusters,
@@ -14,6 +14,7 @@ from associo.graph import (
 from associo.embedding import compute_embedding
 
 __all__ = [
+    "ALL_MEASURES",
     "calculate_association_measures",
     "compute_direct_associations",
     "compute_combinatorial_associations",

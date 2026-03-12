@@ -22,11 +22,17 @@ def _build_graph(
     if isinstance(df, pl.LazyFrame):
         df = df.collect()
 
+    # Filter and extract columns directly — avoids slow iter_rows
+    filtered = df.filter(
+        pl.col(column_similarity).is_not_null()
+        & (pl.col(column_similarity) >= min_edge_weight)
+    )
+    lhs_col = filtered[column_lhs].to_list()
+    rhs_col = filtered[column_rhs].to_list()
+    w_col = filtered[column_similarity].to_list()
+
     G = nx.Graph()
-    for row in df.iter_rows(named=True):
-        w = row[column_similarity]
-        if w is not None and w >= min_edge_weight:
-            G.add_edge(row[column_lhs], row[column_rhs], weight=w)
+    G.add_weighted_edges_from(zip(lhs_col, rhs_col, w_col))
     return G
 
 

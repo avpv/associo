@@ -11,8 +11,16 @@ def _aggregate_counts(
     lhs_rhs_distinct: pl.LazyFrame,
     lhs_distinct: pl.LazyFrame,
     rhs_distinct: pl.LazyFrame,
+    *,
+    all_pairs: bool = False,
 ) -> pl.LazyFrame:
     """Aggregate pair counts and compute the total transaction count.
+
+    Parameters
+    ----------
+    all_pairs : If True, compute measures for ALL (lhs × rhs) combinations,
+        including pairs that never co-occur (lhs_rhs_count=0).
+        If False (default), only compute for actually co-occurring pairs.
 
     Returns a LazyFrame with columns:
         lhs, rhs, lhs_rhs_count, lhs_total_count, rhs_total_count, total_count
@@ -43,15 +51,25 @@ def _aggregate_counts(
         .agg(pl.col("tid").n_unique().alias("rhs_total_count"))
     )
 
-    intersections = (
-        lhs_count
-        .join(rhs_count, how="cross")
-        .join(total_count, how="cross")
-        .join(lhs_rhs_count, on=["lhs", "rhs"], how="left")
-        .with_columns(pl.col("lhs_rhs_count").fill_null(0))
-    )
+    if all_pairs:
+        # Cross join: all (lhs × rhs) including non-co-occurring pairs
+        result = (
+            lhs_count
+            .join(rhs_count, how="cross")
+            .join(total_count, how="cross")
+            .join(lhs_rhs_count, on=["lhs", "rhs"], how="left")
+            .with_columns(pl.col("lhs_rhs_count").fill_null(0))
+        )
+    else:
+        # Only actually co-occurring pairs — no cross join explosion
+        result = (
+            lhs_rhs_count
+            .join(lhs_count, on="lhs")
+            .join(rhs_count, on="rhs")
+            .join(total_count, how="cross")
+        )
 
-    return intersections
+    return result
 
 
 def compute_direct_associations(
@@ -60,6 +78,7 @@ def compute_direct_associations(
     column_lhs: str,
     column_rhs: str,
     column_tid: str,
+    all_pairs: bool = False,
 ) -> pl.DataFrame:
     """Compute association measures when data already has lhs/rhs columns.
 
@@ -69,6 +88,8 @@ def compute_direct_associations(
     column_lhs : Name of the left-hand-side column.
     column_rhs : Name of the right-hand-side column.
     column_tid : Name of the transaction identifier column.
+    all_pairs : If True, compute for all (lhs × rhs) combinations including
+        non-co-occurring pairs. Default False — only co-occurring pairs.
 
     Returns
     -------
@@ -86,7 +107,7 @@ def compute_direct_associations(
     rhs_distinct = data.select("tid", "rhs").unique()
     lhs_rhs_distinct = data.select("tid", "lhs", "rhs").unique()
 
-    counts = _aggregate_counts(lhs_rhs_distinct, lhs_distinct, rhs_distinct)
+    counts = _aggregate_counts(lhs_rhs_distinct, lhs_distinct, rhs_distinct, all_pairs=all_pairs)
 
     return calculate_association_measures(counts)
 
@@ -96,6 +117,8 @@ def compute_combinatorial_associations(
     *,
     column_items: str,
     column_tid: str,
+    include_self_pairs: bool = False,
+    all_pairs: bool = False,
 ) -> pl.DataFrame:
     """Compute association measures for all item pairs sharing a transaction.
 
@@ -104,6 +127,10 @@ def compute_combinatorial_associations(
     df : Source data with an item column and a transaction id column.
     column_items : Name of the items column.
     column_tid : Name of the transaction identifier column.
+    include_self_pairs : If True, include pairs where lhs == rhs (A→A).
+        Default False.
+    all_pairs : If True, compute for all (item × item) combinations including
+        non-co-occurring pairs. Default False.
 
     Returns
     -------
@@ -126,6 +153,9 @@ def compute_combinatorial_associations(
         .unique()
     )
 
-    counts = _aggregate_counts(lhs_rhs_distinct, lhs_distinct, rhs_distinct)
+    if not include_self_pairs:
+        lhs_rhs_distinct = lhs_rhs_distinct.filter(pl.col("lhs") != pl.col("rhs"))
+
+    counts = _aggregate_counts(lhs_rhs_distinct, lhs_distinct, rhs_distinct, all_pairs=all_pairs)
 
     return calculate_association_measures(counts)
