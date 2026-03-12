@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import polars as pl
 
+from associo._validation import validate_columns
 from associo.measures import calculate_association_measures
 
 
@@ -95,6 +96,8 @@ def compute_direct_associations(
     -------
     DataFrame with all association measures for each (lhs, rhs) pair.
     """
+    validate_columns(df, [column_lhs, column_rhs, column_tid], func_name="compute_direct_associations")
+
     lf = df.lazy() if isinstance(df, pl.DataFrame) else df
 
     data = lf.select(
@@ -136,6 +139,8 @@ def compute_combinatorial_associations(
     -------
     DataFrame with all association measures for every (lhs, rhs) combination.
     """
+    validate_columns(df, [column_items, column_tid], func_name="compute_combinatorial_associations")
+
     lf = df.lazy() if isinstance(df, pl.DataFrame) else df
 
     data = lf.select(

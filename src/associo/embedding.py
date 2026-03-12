@@ -6,6 +6,8 @@ import polars as pl
 import numpy as np
 from sklearn.manifold import TSNE
 
+from associo._validation import validate_columns
+
 
 def compute_embedding(
     df: pl.DataFrame | pl.LazyFrame,
@@ -30,6 +32,8 @@ def compute_embedding(
     -------
     DataFrame with columns ``item``, ``x``, ``y``.
     """
+    validate_columns(df, [column_lhs, column_rhs, column_distance], func_name="compute_embedding")
+
     if isinstance(df, pl.LazyFrame):
         df = df.collect()
 

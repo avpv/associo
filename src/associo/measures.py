@@ -294,6 +294,8 @@ def calculate_association_measures(
     -------
     DataFrame with selected association measure columns appended.
     """
+    from associo._validation import validate_columns
+
     if measures is not None:
         requested = set(measures)
         unknown = requested - ALL_MEASURES
@@ -301,6 +303,12 @@ def calculate_association_measures(
             raise ValueError(f"Unknown measures: {unknown}. Available: {sorted(ALL_MEASURES)}")
     else:
         requested = None  # means "all"
+
+    validate_columns(
+        df,
+        [col_lhs_rhs_count, col_lhs_total_count, col_rhs_total_count, col_total_count],
+        func_name="calculate_association_measures",
+    )
 
     lf = df.lazy() if isinstance(df, pl.DataFrame) else df
 

@@ -10,6 +10,8 @@ import polars as pl
 from sklearn.cluster import AffinityPropagation
 import numpy as np
 
+from associo._validation import validate_columns
+
 
 def _build_graph(
     df: pl.DataFrame | pl.LazyFrame,
@@ -19,6 +21,8 @@ def _build_graph(
     min_edge_weight: float = 0.0,
 ) -> nx.Graph:
     """Build a NetworkX graph from a Polars DataFrame of edges."""
+    validate_columns(df, [column_lhs, column_rhs, column_similarity], func_name="_build_graph")
+
     if isinstance(df, pl.LazyFrame):
         df = df.collect()
 
@@ -68,6 +72,8 @@ def compute_clusters(
     -------
     DataFrame with columns ``item``, ``cluster_label``.
     """
+    validate_columns(df, [column_lhs, column_rhs, column_similarity], func_name="compute_clusters")
+
     if isinstance(df, pl.LazyFrame):
         df = df.collect()
 
