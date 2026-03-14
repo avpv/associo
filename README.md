@@ -1,6 +1,6 @@
 # Associo
 
-*From Italian "associo" — I associate.*
+*The name comes from Italian: "associo" is the first-person singular of "associare" (to associate, to connect), meaning "I associate". It reflects the core purpose of the library — discovering associations and connections in data.*
 
 High-performance association analysis library built on [Polars](https://pola.rs/). Computes **60+ association metrics**, performs **graph clustering** and **community detection**, and provides **t-SNE embedding** for visualization.
 
