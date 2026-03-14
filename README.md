@@ -1,5 +1,7 @@
 # Associo
 
+*From Italian "associo" — I associate.*
+
 High-performance association analysis library built on [Polars](https://pola.rs/). Computes **60+ association metrics**, performs **graph clustering** and **community detection**, and provides **t-SNE embedding** for visualization.
 
 ## Features
