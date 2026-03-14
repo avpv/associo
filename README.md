@@ -21,7 +21,7 @@ High-performance association analysis library built on [Polars](https://pola.rs/
 ## Installation
 
 ```bash
-pip install associo
+pip install git+https://github.com/avpv/associo.git
 ```
 
 **Requirements:** Python >= 3.10
