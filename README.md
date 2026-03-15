@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="logo.svg" alt="Associo" width="120"/>
+</p>
+
 # Associo
 
 *From Italian "associo" — I associate. It reflects the core purpose of the library — discovering associations and connections in data.*
