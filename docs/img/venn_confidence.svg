@@ -20,7 +20,7 @@
   <!-- Set X highlighted as "focus" -->
   <circle cx="170" cy="145" r="85" fill="#0969da" fill-opacity="0.25" stroke="#0969da" stroke-width="3" stroke-dasharray="6,3"/>
   <text x="105" y="115" class="set-label" fill="#0969da">X</text>
-  <text x="105" y="133" class="desc">a = 50</text>
+  <text x="105" y="133" class="desc">X = 50</text>
 
   <!-- Set Y -->
   <circle cx="270" cy="145" r="85" fill="#2da44e" fill-opacity="0.1" stroke="#2da44e" stroke-width="1.5"/>
@@ -44,5 +44,5 @@
   <text x="170" y="75" text-anchor="middle" class="highlight-text">← Given X, what fraction is also Y? →</text>
 
   <!-- Formula -->
-  <text x="220" y="265" text-anchor="middle" class="formula">Confidence = a,b / a = 30 / 50 = 0.60</text>
+  <text x="220" y="265" text-anchor="middle" class="formula">Confidence = XY / X = 30 / 50 = 0.60</text>
 </svg>
