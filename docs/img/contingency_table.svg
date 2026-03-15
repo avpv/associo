@@ -36,48 +36,48 @@
   <text x="55" y="145" text-anchor="middle" class="sublabel">(LHS)</text>
   <text x="55" y="228" text-anchor="middle" class="sublabel">(¬LHS)</text>
 
-  <!-- Cell: X=1, Y=1 (a,b) -->
+  <!-- Cell: X=1, Y=1 (XY) -->
   <rect x="190" y="100" width="130" height="75" rx="4" fill="#dafbe1" stroke="#2da44e" stroke-width="1.5"/>
-  <text x="255" y="130" text-anchor="middle" class="cell-text">a,b</text>
+  <text x="255" y="130" text-anchor="middle" class="cell-text">XY</text>
   <text x="255" y="148" text-anchor="middle" class="cell-formula">count(X ∧ Y)</text>
   <text x="255" y="166" text-anchor="middle" class="example" fill="#2da44e">30</text>
 
-  <!-- Cell: X=1, Y=0 (a,¬b) -->
+  <!-- Cell: X=1, Y=0 (X¬Y) -->
   <rect x="320" y="100" width="130" height="75" rx="4" fill="#fff1e5" stroke="#bf8700" stroke-width="1.5"/>
-  <text x="385" y="130" text-anchor="middle" class="cell-text">a,¬b</text>
+  <text x="385" y="130" text-anchor="middle" class="cell-text">X¬Y</text>
   <text x="385" y="148" text-anchor="middle" class="cell-formula">count(X ∧ ¬Y)</text>
   <text x="385" y="166" text-anchor="middle" class="example" fill="#bf8700">20</text>
 
-  <!-- Cell: X=0, Y=1 (¬a,b) -->
+  <!-- Cell: X=0, Y=1 (¬XY) -->
   <rect x="190" y="185" width="130" height="75" rx="4" fill="#ddf4ff" stroke="#0969da" stroke-width="1.5"/>
-  <text x="255" y="215" text-anchor="middle" class="cell-text">¬a,b</text>
+  <text x="255" y="215" text-anchor="middle" class="cell-text">¬XY</text>
   <text x="255" y="233" text-anchor="middle" class="cell-formula">count(¬X ∧ Y)</text>
   <text x="255" y="251" text-anchor="middle" class="example" fill="#0969da">10</text>
 
-  <!-- Cell: X=0, Y=0 (¬a,¬b) -->
+  <!-- Cell: X=0, Y=0 (¬X¬Y) -->
   <rect x="320" y="185" width="130" height="75" rx="4" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1.5"/>
-  <text x="385" y="215" text-anchor="middle" class="cell-text">¬a,¬b</text>
+  <text x="385" y="215" text-anchor="middle" class="cell-text">¬X¬Y</text>
   <text x="385" y="233" text-anchor="middle" class="cell-formula">count(¬X ∧ ¬Y)</text>
   <text x="385" y="251" text-anchor="middle" class="example" fill="#6e7781">40</text>
 
   <!-- Row totals -->
   <rect x="450" y="100" width="60" height="75" rx="4" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1"/>
-  <text x="480" y="130" text-anchor="middle" class="total-text">a</text>
+  <text x="480" y="130" text-anchor="middle" class="total-text">X</text>
   <text x="480" y="148" text-anchor="middle" class="cell-formula">count(X)</text>
   <text x="480" y="166" text-anchor="middle" class="example" fill="#24292f">50</text>
 
   <rect x="450" y="185" width="60" height="75" rx="4" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1"/>
-  <text x="480" y="215" text-anchor="middle" class="total-text">¬a</text>
+  <text x="480" y="215" text-anchor="middle" class="total-text">¬X</text>
   <text x="480" y="233" text-anchor="middle" class="cell-formula">count(¬X)</text>
   <text x="480" y="251" text-anchor="middle" class="example" fill="#24292f">50</text>
 
   <!-- Column totals -->
   <rect x="190" y="270" width="130" height="50" rx="4" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1"/>
-  <text x="255" y="292" text-anchor="middle" class="total-text">b</text>
+  <text x="255" y="292" text-anchor="middle" class="total-text">Y</text>
   <text x="255" y="310" text-anchor="middle" class="cell-formula">count(Y) = 40</text>
 
   <rect x="320" y="270" width="130" height="50" rx="4" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1"/>
-  <text x="385" y="292" text-anchor="middle" class="total-text">¬b</text>
+  <text x="385" y="292" text-anchor="middle" class="total-text">¬Y</text>
   <text x="385" y="310" text-anchor="middle" class="cell-formula">count(¬Y) = 60</text>
 
   <!-- Grand total -->
