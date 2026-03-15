@@ -56,15 +56,15 @@ Every metric in Associo is derived from a **2×2 contingency table**. This table
 
 | Cell | Meaning | Example |
 |------|---------|---------|
-| **a,b = 30** | Both X and Y present | 30 orders have both bread and butter |
-| **a,¬b = 20** | X present, Y absent | 20 orders have bread but not butter |
-| **¬a,b = 10** | X absent, Y present | 10 orders have butter but not bread |
-| **¬a,¬b = 40** | Neither present | 40 orders have neither |
-| **a = 50** | Total transactions with X | bread appears in 50 orders |
-| **b = 40** | Total transactions with Y | butter appears in 40 orders |
+| **XY = 30** | Both X and Y present | 30 orders have both bread and butter |
+| **X¬Y = 20** | X present, Y absent | 20 orders have bread but not butter |
+| **¬XY = 10** | X absent, Y present | 10 orders have butter but not bread |
+| **¬X¬Y = 40** | Neither present | 40 orders have neither |
+| **X = 50** | Total transactions with X | bread appears in 50 orders |
+| **Y = 40** | Total transactions with Y | butter appears in 40 orders |
 | **n = 100** | Grand total | 100 orders total |
 
-> **Throughout this guide**, we use these example values: a,b=30, a=50, b=40, n=100.
+> **Throughout this guide**, we use these example values: XY=30, X=50, Y=40, n=100.
 
 ---
 
@@ -131,7 +131,7 @@ Lift compares the **observed** co-occurrence rate to the **expected** rate under
   <img src="docs/img/venn_jaccard.svg" alt="Jaccard — Venn Diagram" width="440"/>
 </p>
 
-Jaccard focuses only on the **union** of X and Y — it completely ignores transactions where neither appears (¬a,¬b). This makes it useful when "absence" is not meaningful (e.g., in large catalogs).
+Jaccard focuses only on the **union** of X and Y — it completely ignores transactions where neither appears (¬X¬Y). This makes it useful when "absence" is not meaningful (e.g., in large catalogs).
 
 - **Range:** 0 to 1
 - **= 0** → no overlap
@@ -166,18 +166,18 @@ Jaccard focuses only on the **union** of X and Y — it completely ignores trans
 ### Contingency Table Cells
 | Metric | Formula | Description |
 |--------|---------|-------------|
-| `lhs_not_rhs_count` | a − a,b | Transactions with X but not Y |
-| `not_lhs_rhs_count` | b − a,b | Transactions with Y but not X |
-| `not_lhs_not_rhs_count` | n − a − b + a,b | Transactions with neither X nor Y |
+| `lhs_not_rhs_count` | X − XY | Transactions with X but not Y |
+| `not_lhs_rhs_count` | Y − XY | Transactions with Y but not X |
+| `not_lhs_not_rhs_count` | n − X − Y + XY | Transactions with neither X nor Y |
 
 ### Probabilistic
 | Metric | Formula | Description |
 |--------|---------|-------------|
-| `support` | a,b / n | Joint probability P(X ∧ Y) — how often X and Y co-occur |
-| `coverage` | a / n | Marginal probability P(X) — how often X appears |
-| `prevalence` | b / n | Marginal probability P(Y) — how often Y appears |
-| `confidence` | a,b / a | Conditional probability P(Y\|X) — when X is present, how often is Y? |
-| `reverse_confidence` | a,b / b | Conditional probability P(X\|Y) — when Y is present, how often is X? |
+| `support` | XY / n | Joint probability P(X ∧ Y) — how often X and Y co-occur |
+| `coverage` | X / n | Marginal probability P(X) — how often X appears |
+| `prevalence` | Y / n | Marginal probability P(Y) — how often Y appears |
+| `confidence` | XY / X | Conditional probability P(Y\|X) — when X is present, how often is Y? |
+| `reverse_confidence` | XY / Y | Conditional probability P(X\|Y) — when Y is present, how often is X? |
 | `lift` | confidence / prevalence | How much more likely Y is when X is present vs chance. =1 independent, >1 positive, <1 negative |
 | `leverage` | support − coverage × prevalence | Difference between observed and expected support. 0 = independence |
 | `conviction` | (1 − prevalence) / (1 − confidence) | How often the rule would be wrong if X and Y were independent. ∞ = never fails |
@@ -185,13 +185,13 @@ Jaccard focuses only on the **union** of X and Y — it completely ignores trans
 ### Similarity & Distance
 | Metric | Formula | Description |
 |--------|---------|-------------|
-| `jaccard` | a,b / (a + b − a,b) | Fraction of the union that is the intersection. Ignores ¬a,¬b |
+| `jaccard` | XY / (X + Y − XY) | Fraction of the union that is the intersection. Ignores ¬X¬Y |
 | `cosine` | support / √(coverage × prevalence) | Normalized dot product similarity. Like lift but dampened |
 | `kulczynski` | 0.5 × (confidence + reverse_confidence) | Average of both conditional probabilities. Symmetric |
-| `sokal_sneath` | 2·a,b / (a + b) | Double-weighted overlap similarity |
-| `sokal_michener` | (a,b + ¬a,¬b) / n | Simple matching coefficient — counts all agreements |
-| `rogers_tanimoto` | (a,b + ¬a,¬b) / (n + (a + b − 2·a,b)) | Adjusted matching — penalizes disagreements more heavily |
-| `hamming` | (a + b − 2·a,b) / n | Fraction of transactions where X and Y disagree (distance metric) |
+| `sokal_sneath` | 2·XY / (X + Y) | Double-weighted overlap similarity |
+| `sokal_michener` | (XY + ¬X¬Y) / n | Simple matching coefficient — counts all agreements |
+| `rogers_tanimoto` | (XY + ¬X¬Y) / (n + X + Y − 2·XY) | Adjusted matching — penalizes disagreements more heavily |
+| `hamming` | (X + Y − 2·XY) / n | Fraction of transactions where X and Y disagree (distance metric) |
 | `lerman_similarity` | (P(X∪Y) − P(X)·P(Y)) / √(P(X)·P(Y)) | Normalized deviation of union from expected under independence |
 
 ### Statistical Tests
@@ -200,7 +200,7 @@ Jaccard focuses only on the **union** of X and Y — it completely ignores trans
 | `chi_squared` | Σ (observed − expected)² / expected | Pearson's χ² test for independence. Higher = stronger association |
 | `local_chi_squared` | (support·n − expected)² / expected | Contribution of the (X,Y) cell to χ². Isolates this pair's effect |
 | `phi_coefficient` | leverage / √(coverage·(1−coverage)·prevalence·(1−prevalence)) | Normalized χ² for 2×2 tables. Range −1 to +1, like a correlation |
-| `odds_ratio` | (a,b × ¬a,¬b) / (a,¬b × ¬a,b) | Odds of Y with X vs without. Uses Haldane +0.5 correction. Range 0 to ∞ |
+| `odds_ratio` | (XY · ¬X¬Y) / (X¬Y · ¬XY) | Odds of Y with X vs without. Uses Haldane +0.5 correction. Range 0 to ∞ |
 | `yules_q` | (OR − 1) / (OR + 1) | Normalized odds ratio. Range −1 to +1 |
 | `yules_y` | (√OR − 1) / (√OR + 1) | Alternative normalized OR, more conservative than Yule's Q |
 | `kappa` | (observed agreement − expected) / (1 − expected) | Cohen's kappa — agreement beyond chance. Range −1 to +1 |
@@ -238,7 +238,7 @@ Jaccard focuses only on the **union** of X and Y — it completely ignores trans
 | `casual_confidence` | 0.5 × (confidence + P(¬Y\|¬X)) | Average of forward rule and contrapositive |
 | `casual_support` | P(X∪Y) + (1 − support) | Broad co-occurrence including complementary pairs |
 | `confirmed_confidence` | confidence − P(¬Y\|X) | Difference between positive and negative confidence |
-| `counter_example_rate` | (a,b + ¬a,b) / n | Fraction of transactions where Y appears (with or without X) |
+| `counter_example_rate` | (XY + ¬XY) / n | Fraction of transactions where Y appears (with or without X) |
 | `implication_index` | (support − coverage·prevalence) / √(coverage·prevalence) | Standardized deviation from expected support, like a z-score |
 | `lambda` | Goodman-Kruskal's λ | Proportional reduction in prediction error. 0 = no improvement |
 | `least_contradiction` | (P(X∪Y) − (1−prevalence) − support) / prevalence | Penalizes contradictory evidence |
@@ -261,7 +261,7 @@ Jaccard focuses only on the **union** of X and Y — it completely ignores trans
 ### Smoothed & Confidence Intervals
 | Metric | Formula | Description |
 |--------|---------|-------------|
-| `confidence_laplace` | (a,b + 2) / (a + 4) | Laplace-smoothed confidence. Handles zero counts gracefully |
+| `confidence_laplace` | (XY + 2) / (X + 4) | Laplace-smoothed confidence. Handles zero counts gracefully |
 | `importance_laplace` | log₁₀(conf_laplace / (1 − conf_laplace)) | Laplace-smoothed importance. Stable for small samples |
 | `confidence_lower` | confidence − 1.96 × SE | 95% CI lower bound for confidence |
 | `confidence_upper` | confidence + 1.96 × SE | 95% CI upper bound for confidence |
