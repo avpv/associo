@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 280">
+  <defs>
+    <style>
+      text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; }
+      .title { font-size: 16px; font-weight: 700; fill: #24292f; }
+      .set-label { font-size: 14px; font-weight: 600; }
+      .formula { font-size: 13px; fill: #24292f; }
+      .desc { font-size: 11px; fill: #57606a; }
+      .value { font-size: 18px; font-weight: 700; }
+    </style>
+  </defs>
+
+  <!-- Title -->
+  <text x="220" y="25" text-anchor="middle" class="title">Support = P(X ∧ Y)</text>
+
+  <!-- Universe rectangle -->
+  <rect x="20" y="40" width="400" height="200" rx="8" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1"/>
+  <text x="405" y="58" text-anchor="end" class="desc">n = 100 transactions</text>
+
+  <!-- Set X (left circle) -->
+  <circle cx="170" cy="145" r="85" fill="#0969da" fill-opacity="0.15" stroke="#0969da" stroke-width="2"/>
+  <text x="110" y="130" class="set-label" fill="#0969da">X</text>
+  <text x="110" y="148" class="desc">a = 50</text>
+
+  <!-- Set Y (right circle) -->
+  <circle cx="270" cy="145" r="85" fill="#2da44e" fill-opacity="0.15" stroke="#2da44e" stroke-width="2"/>
+  <text x="310" y="130" class="set-label" fill="#2da44e">Y</text>
+  <text x="310" y="148" class="desc">b = 40</text>
+
+  <!-- Intersection highlight -->
+  <clipPath id="clip-x-support">
+    <circle cx="170" cy="145" r="85"/>
+  </clipPath>
+  <circle cx="270" cy="145" r="85" clip-path="url(#clip-x-support)" fill="#cf222e" fill-opacity="0.35"/>
+
+  <!-- Intersection label -->
+  <text x="220" y="140" text-anchor="middle" class="value" fill="#cf222e">30</text>
+  <text x="220" y="158" text-anchor="middle" class="desc">X ∧ Y</text>
+
+  <!-- Formula -->
+  <text x="220" y="265" text-anchor="middle" class="formula">Support = a,b / n = 30 / 100 = 0.30</text>
+</svg>

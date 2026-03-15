@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 280">
+  <defs>
+    <style>
+      text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; }
+      .title { font-size: 16px; font-weight: 700; fill: #24292f; }
+      .set-label { font-size: 14px; font-weight: 600; }
+      .formula { font-size: 13px; fill: #24292f; }
+      .desc { font-size: 11px; fill: #57606a; }
+      .value { font-size: 18px; font-weight: 700; }
+      .highlight-text { font-size: 12px; font-weight: 600; fill: #cf222e; }
+    </style>
+  </defs>
+
+  <!-- Title -->
+  <text x="220" y="25" text-anchor="middle" class="title">Confidence = P(Y | X)</text>
+
+  <!-- Universe rectangle -->
+  <rect x="20" y="40" width="400" height="200" rx="8" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1"/>
+
+  <!-- Set X highlighted as "focus" -->
+  <circle cx="170" cy="145" r="85" fill="#0969da" fill-opacity="0.25" stroke="#0969da" stroke-width="3" stroke-dasharray="6,3"/>
+  <text x="105" y="115" class="set-label" fill="#0969da">X</text>
+  <text x="105" y="133" class="desc">a = 50</text>
+
+  <!-- Set Y -->
+  <circle cx="270" cy="145" r="85" fill="#2da44e" fill-opacity="0.1" stroke="#2da44e" stroke-width="1.5"/>
+  <text x="315" y="130" class="set-label" fill="#2da44e">Y</text>
+
+  <!-- Intersection highlight (stronger) -->
+  <clipPath id="clip-x-conf">
+    <circle cx="170" cy="145" r="85"/>
+  </clipPath>
+  <circle cx="270" cy="145" r="85" clip-path="url(#clip-x-conf)" fill="#cf222e" fill-opacity="0.4"/>
+
+  <!-- Labels inside X -->
+  <text x="140" y="150" text-anchor="middle" class="value" fill="#0969da">20</text>
+  <text x="140" y="166" text-anchor="middle" class="desc">X only</text>
+
+  <!-- Intersection label -->
+  <text x="220" y="140" text-anchor="middle" class="value" fill="#cf222e">30</text>
+  <text x="220" y="158" text-anchor="middle" class="desc">X ∧ Y</text>
+
+  <!-- Arrow showing "given X" -->
+  <text x="170" y="75" text-anchor="middle" class="highlight-text">← Given X, what fraction is also Y? →</text>
+
+  <!-- Formula -->
+  <text x="220" y="265" text-anchor="middle" class="formula">Confidence = a,b / a = 30 / 50 = 0.60</text>
+</svg>

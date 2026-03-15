@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 340">
+  <defs>
+    <style>
+      text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; }
+      .title { font-size: 16px; font-weight: 700; fill: #24292f; }
+      .header { font-size: 13px; font-weight: 600; fill: #ffffff; }
+      .cell-text { font-size: 13px; fill: #24292f; }
+      .cell-formula { font-size: 11px; fill: #57606a; }
+      .label { font-size: 12px; font-weight: 600; fill: #24292f; }
+      .sublabel { font-size: 11px; fill: #57606a; }
+      .total-text { font-size: 13px; font-weight: 600; fill: #24292f; }
+      .example { font-size: 20px; font-weight: 700; }
+    </style>
+  </defs>
+
+  <!-- Title -->
+  <text x="260" y="28" text-anchor="middle" class="title">2 × 2 Contingency Table</text>
+
+  <!-- Column headers -->
+  <rect x="190" y="60" width="130" height="32" rx="6" ry="6" fill="#2da44e"/>
+  <text x="255" y="81" text-anchor="middle" class="header">Y = 1 (RHS)</text>
+  <rect x="320" y="60" width="130" height="32" rx="6" ry="6" fill="#cf222e"/>
+  <text x="385" y="81" text-anchor="middle" class="header">Y = 0 (¬RHS)</text>
+  <rect x="450" y="60" width="60" height="32" rx="6" ry="6" fill="#6e7781"/>
+  <text x="480" y="81" text-anchor="middle" class="header">Total</text>
+
+  <!-- Row headers -->
+  <rect x="10" y="100" width="90" height="32" rx="6" ry="6" fill="#0969da"/>
+  <text x="55" y="121" text-anchor="middle" class="header">X = 1</text>
+  <rect x="10" y="185" width="90" height="32" rx="6" ry="6" fill="#8250df"/>
+  <text x="55" y="206" text-anchor="middle" class="header">X = 0</text>
+  <rect x="10" y="270" width="90" height="32" rx="6" ry="6" fill="#6e7781"/>
+  <text x="55" y="291" text-anchor="middle" class="header">Total</text>
+
+  <!-- Row label text -->
+  <text x="55" y="145" text-anchor="middle" class="sublabel">(LHS)</text>
+  <text x="55" y="228" text-anchor="middle" class="sublabel">(¬LHS)</text>
+
+  <!-- Cell: X=1, Y=1 (a,b) -->
+  <rect x="190" y="100" width="130" height="75" rx="4" fill="#dafbe1" stroke="#2da44e" stroke-width="1.5"/>
+  <text x="255" y="130" text-anchor="middle" class="cell-text">a,b</text>
+  <text x="255" y="148" text-anchor="middle" class="cell-formula">count(X ∧ Y)</text>
+  <text x="255" y="166" text-anchor="middle" class="example" fill="#2da44e">30</text>
+
+  <!-- Cell: X=1, Y=0 (a,¬b) -->
+  <rect x="320" y="100" width="130" height="75" rx="4" fill="#fff1e5" stroke="#bf8700" stroke-width="1.5"/>
+  <text x="385" y="130" text-anchor="middle" class="cell-text">a,¬b</text>
+  <text x="385" y="148" text-anchor="middle" class="cell-formula">count(X ∧ ¬Y)</text>
+  <text x="385" y="166" text-anchor="middle" class="example" fill="#bf8700">20</text>
+
+  <!-- Cell: X=0, Y=1 (¬a,b) -->
+  <rect x="190" y="185" width="130" height="75" rx="4" fill="#ddf4ff" stroke="#0969da" stroke-width="1.5"/>
+  <text x="255" y="215" text-anchor="middle" class="cell-text">¬a,b</text>
+  <text x="255" y="233" text-anchor="middle" class="cell-formula">count(¬X ∧ Y)</text>
+  <text x="255" y="251" text-anchor="middle" class="example" fill="#0969da">10</text>
+
+  <!-- Cell: X=0, Y=0 (¬a,¬b) -->
+  <rect x="320" y="185" width="130" height="75" rx="4" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1.5"/>
+  <text x="385" y="215" text-anchor="middle" class="cell-text">¬a,¬b</text>
+  <text x="385" y="233" text-anchor="middle" class="cell-formula">count(¬X ∧ ¬Y)</text>
+  <text x="385" y="251" text-anchor="middle" class="example" fill="#6e7781">40</text>
+
+  <!-- Row totals -->
+  <rect x="450" y="100" width="60" height="75" rx="4" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1"/>
+  <text x="480" y="130" text-anchor="middle" class="total-text">a</text>
+  <text x="480" y="148" text-anchor="middle" class="cell-formula">count(X)</text>
+  <text x="480" y="166" text-anchor="middle" class="example" fill="#24292f">50</text>
+
+  <rect x="450" y="185" width="60" height="75" rx="4" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1"/>
+  <text x="480" y="215" text-anchor="middle" class="total-text">¬a</text>
+  <text x="480" y="233" text-anchor="middle" class="cell-formula">count(¬X)</text>
+  <text x="480" y="251" text-anchor="middle" class="example" fill="#24292f">50</text>
+
+  <!-- Column totals -->
+  <rect x="190" y="270" width="130" height="50" rx="4" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1"/>
+  <text x="255" y="292" text-anchor="middle" class="total-text">b</text>
+  <text x="255" y="310" text-anchor="middle" class="cell-formula">count(Y) = 40</text>
+
+  <rect x="320" y="270" width="130" height="50" rx="4" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1"/>
+  <text x="385" y="292" text-anchor="middle" class="total-text">¬b</text>
+  <text x="385" y="310" text-anchor="middle" class="cell-formula">count(¬Y) = 60</text>
+
+  <!-- Grand total -->
+  <rect x="450" y="270" width="60" height="50" rx="4" fill="#e8e8e8" stroke="#d0d7de" stroke-width="1.5"/>
+  <text x="480" y="292" text-anchor="middle" class="total-text">n</text>
+  <text x="480" y="310" text-anchor="middle" class="cell-formula">100</text>
+</svg>

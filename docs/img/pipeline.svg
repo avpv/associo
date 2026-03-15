@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 200">
+  <defs>
+    <style>
+      text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; }
+      .step-title { font-size: 13px; font-weight: 700; fill: #fff; }
+      .step-desc { font-size: 10px; fill: #57606a; }
+      .func-name { font-size: 10px; font-weight: 600; fill: #0969da; font-family: 'SFMono-Regular', Consolas, monospace; }
+      .arrow { fill: #d0d7de; }
+    </style>
+    <marker id="arrowhead-pipe" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#8c959f"/>
+    </marker>
+  </defs>
+
+  <!-- Step 1: Raw Data -->
+  <rect x="10" y="30" width="130" height="50" rx="8" fill="#24292f"/>
+  <text x="75" y="52" text-anchor="middle" class="step-title">1. Raw Data</text>
+  <text x="75" y="68" text-anchor="middle" style="font-size:10px;fill:#8b949e">Polars DataFrame</text>
+  <text x="75" y="100" text-anchor="middle" class="step-desc">Transactions with</text>
+  <text x="75" y="114" text-anchor="middle" class="step-desc">items or pairs</text>
+
+  <!-- Arrow 1 -->
+  <line x1="145" y1="55" x2="175" y2="55" stroke="#8c959f" stroke-width="2" marker-end="url(#arrowhead-pipe)"/>
+
+  <!-- Step 2: Association Extraction -->
+  <rect x="180" y="30" width="140" height="50" rx="8" fill="#0969da"/>
+  <text x="250" y="52" text-anchor="middle" class="step-title">2. Count Pairs</text>
+  <text x="250" y="68" text-anchor="middle" style="font-size:10px;fill:#a5d6ff">Contingency Table</text>
+  <text x="250" y="100" text-anchor="middle" class="func-name">direct_associations()</text>
+  <text x="250" y="114" text-anchor="middle" class="func-name">combinatorial_associations()</text>
+  <text x="250" y="128" text-anchor="middle" class="func-name">association_measures()</text>
+
+  <!-- Arrow 2 -->
+  <line x1="325" y1="55" x2="355" y2="55" stroke="#8c959f" stroke-width="2" marker-end="url(#arrowhead-pipe)"/>
+
+  <!-- Step 3: Metrics -->
+  <rect x="360" y="30" width="130" height="50" rx="8" fill="#2da44e"/>
+  <text x="425" y="52" text-anchor="middle" class="step-title">3. 60+ Metrics</text>
+  <text x="425" y="68" text-anchor="middle" style="font-size:10px;fill:#aff5b4">Support, Lift, ...</text>
+  <text x="425" y="100" text-anchor="middle" class="step-desc">Computed in Polars</text>
+  <text x="425" y="114" text-anchor="middle" class="step-desc">as lazy expressions</text>
+
+  <!-- Arrow 3 (splits) -->
+  <line x1="495" y1="45" x2="535" y2="35" stroke="#8c959f" stroke-width="2" marker-end="url(#arrowhead-pipe)"/>
+  <line x1="495" y1="65" x2="535" y2="75" stroke="#8c959f" stroke-width="2" marker-end="url(#arrowhead-pipe)"/>
+
+  <!-- Step 4a: Graph Analysis -->
+  <rect x="540" y="10" width="130" height="50" rx="8" fill="#8250df"/>
+  <text x="605" y="32" text-anchor="middle" class="step-title">4a. Graph</text>
+  <text x="605" y="48" text-anchor="middle" style="font-size:10px;fill:#d8b4fe">Communities</text>
+  <text x="605" y="80" text-anchor="middle" class="func-name">communities()</text>
+  <text x="605" y="94" text-anchor="middle" class="func-name">clusters()</text>
+  <text x="605" y="108" text-anchor="middle" class="func-name">k_clique_communities()</text>
+
+  <!-- Step 4b: Embedding -->
+  <rect x="540" y="70" width="130" height="50" rx="8" fill="#bf8700"/>
+  <text x="605" y="92" text-anchor="middle" class="step-title">4b. Embed</text>
+  <text x="605" y="108" text-anchor="middle" style="font-size:10px;fill:#ffd33d">t-SNE 2D</text>
+  <text x="605" y="140" text-anchor="middle" class="func-name">embedding()</text>
+
+  <!-- Arrow 4 -->
+  <line x1="675" y1="35" x2="705" y2="50" stroke="#8c959f" stroke-width="2" marker-end="url(#arrowhead-pipe)"/>
+  <line x1="675" y1="95" x2="705" y2="70" stroke="#8c959f" stroke-width="2" marker-end="url(#arrowhead-pipe)"/>
+
+  <!-- Step 5: Results -->
+  <rect x="710" y="35" width="60" height="50" rx="8" fill="#cf222e"/>
+  <text x="740" y="57" text-anchor="middle" class="step-title">Result</text>
+  <text x="740" y="73" text-anchor="middle" style="font-size:10px;fill:#ffc1ba">DataFrame</text>
+
+  <!-- Bottom legend -->
+  <text x="390" y="175" text-anchor="middle" style="font-size:11px;fill:#57606a;font-style:italic">All inputs and outputs are Polars DataFrames — compose steps freely</text>
+</svg>

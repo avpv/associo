@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 320">
+  <defs>
+    <style>
+      text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; }
+      .title { font-size: 16px; font-weight: 700; fill: #24292f; }
+      .subtitle { font-size: 12px; fill: #57606a; }
+      .formula { font-size: 13px; fill: #24292f; }
+      .bar-label { font-size: 12px; font-weight: 600; fill: #24292f; }
+      .bar-value { font-size: 14px; font-weight: 700; }
+      .annotation { font-size: 11px; fill: #57606a; }
+      .interp { font-size: 12px; font-weight: 600; }
+    </style>
+  </defs>
+
+  <!-- Title -->
+  <text x="220" y="25" text-anchor="middle" class="title">Lift = P(Y|X) / P(Y)</text>
+  <text x="220" y="44" text-anchor="middle" class="subtitle">How much more likely is Y when X is present vs. random chance?</text>
+
+  <!-- Bar chart comparison -->
+  <!-- Baseline: P(Y) -->
+  <text x="60" y="90" class="bar-label">P(Y)</text>
+  <text x="60" y="105" class="annotation">baseline</text>
+  <rect x="120" y="80" width="120" height="30" rx="4" fill="#2da44e" fill-opacity="0.3" stroke="#2da44e" stroke-width="1.5"/>
+  <text x="250" y="100" class="bar-value" fill="#2da44e">0.40</text>
+
+  <!-- Observed: P(Y|X) -->
+  <text x="60" y="150" class="bar-label">P(Y|X)</text>
+  <text x="60" y="165" class="annotation">observed</text>
+  <rect x="120" y="140" width="180" height="30" rx="4" fill="#0969da" fill-opacity="0.3" stroke="#0969da" stroke-width="1.5"/>
+  <text x="310" y="160" class="bar-value" fill="#0969da">0.60</text>
+
+  <!-- Lift arrow -->
+  <line x1="350" y1="95" x2="350" y2="155" stroke="#cf222e" stroke-width="2" marker-end="url(#arrowhead-lift)"/>
+  <line x1="350" y1="155" x2="350" y2="95" stroke="#cf222e" stroke-width="2" marker-end="url(#arrowhead-lift)"/>
+  <defs>
+    <marker id="arrowhead-lift" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#cf222e"/>
+    </marker>
+  </defs>
+  <text x="370" y="130" class="bar-value" fill="#cf222e">×1.5</text>
+
+  <!-- Formula -->
+  <text x="220" y="210" text-anchor="middle" class="formula">Lift = confidence / prevalence = 0.60 / 0.40 = 1.50</text>
+
+  <!-- Interpretation scale -->
+  <rect x="40" y="235" width="360" height="35" rx="6" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1"/>
+
+  <!-- Scale line -->
+  <line x1="60" y1="260" x2="380" y2="260" stroke="#d0d7de" stroke-width="2"/>
+
+  <!-- Markers -->
+  <circle cx="60" cy="260" r="3" fill="#cf222e"/>
+  <text x="60" y="250" text-anchor="middle" class="annotation">0</text>
+  <text x="60" y="278" text-anchor="middle" class="annotation" fill="#cf222e">negative</text>
+
+  <circle cx="220" cy="260" r="4" fill="#6e7781" stroke="#6e7781" stroke-width="2"/>
+  <text x="220" y="250" text-anchor="middle" class="annotation">1.0</text>
+  <text x="220" y="278" text-anchor="middle" class="annotation" fill="#6e7781">independent</text>
+
+  <circle cx="310" cy="260" r="5" fill="#2da44e"/>
+  <text x="310" y="250" text-anchor="middle" class="bar-value" fill="#2da44e">1.5</text>
+  <text x="380" y="250" text-anchor="end" class="annotation">∞</text>
+  <text x="350" y="278" text-anchor="middle" class="annotation" fill="#2da44e">positive</text>
+
+  <!-- Bottom interpretation -->
+  <text x="220" y="308" text-anchor="middle" class="interp" fill="#2da44e">Lift = 1.5 → X makes Y 50% more likely than random chance</text>
+</svg>
