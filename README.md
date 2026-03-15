@@ -35,7 +35,7 @@ pip install git+https://github.com/avpv/associo.git
    - [Lift](#lift--pyx--py)
    - [Jaccard Similarity](#jaccard-similarity)
    - [Leverage & Conviction](#leverage--conviction)
-3. [All 60+ Metrics — Taxonomy](#3-all-60-metrics--taxonomy)
+3. [All 60+ Metrics — Complete Reference](#3-all-60-metrics--taxonomy)
 4. [Quick Start](#4-quick-start)
 5. [API Reference](#5-api-reference)
 6. [Graph Algorithms](#6-graph-algorithms)
@@ -163,69 +163,112 @@ Jaccard focuses only on the **union** of X and Y — it completely ignores trans
 <details>
 <summary><b>Full list of all metrics with formulas</b></summary>
 
+### Contingency Table Cells
+| Metric | Formula | Description |
+|--------|---------|-------------|
+| `lhs_not_rhs_count` | a − a,b | Transactions with X but not Y |
+| `not_lhs_rhs_count` | b − a,b | Transactions with Y but not X |
+| `not_lhs_not_rhs_count` | n − a − b + a,b | Transactions with neither X nor Y |
+
 ### Probabilistic
-| Metric | Formula |
-|--------|---------|
-| `support` | a,b / n |
-| `coverage` | a / n |
-| `prevalence` | b / n |
-| `confidence` | a,b / a |
-| `reverse_confidence` | a,b / b |
-| `lift` | confidence / prevalence |
-| `leverage` | support − coverage × prevalence |
-| `conviction` | (1 − prevalence) / (1 − confidence) |
+| Metric | Formula | Description |
+|--------|---------|-------------|
+| `support` | a,b / n | Joint probability P(X ∧ Y) — how often X and Y co-occur |
+| `coverage` | a / n | Marginal probability P(X) — how often X appears |
+| `prevalence` | b / n | Marginal probability P(Y) — how often Y appears |
+| `confidence` | a,b / a | Conditional probability P(Y\|X) — when X is present, how often is Y? |
+| `reverse_confidence` | a,b / b | Conditional probability P(X\|Y) — when Y is present, how often is X? |
+| `lift` | confidence / prevalence | How much more likely Y is when X is present vs chance. =1 independent, >1 positive, <1 negative |
+| `leverage` | support − coverage × prevalence | Difference between observed and expected support. 0 = independence |
+| `conviction` | (1 − prevalence) / (1 − confidence) | How often the rule would be wrong if X and Y were independent. ∞ = never fails |
 
 ### Similarity & Distance
-| Metric | Formula |
-|--------|---------|
-| `jaccard` | a,b / (a + b − a,b) |
-| `cosine` | support / √(coverage × prevalence) |
-| `kulczynski` | 0.5 × (confidence + reverse_confidence) |
-| `sokal_sneath` | a,b / (a + b − a,b + (a + b − 2·a,b)) |
-| `sokal_michener` | (a,b + ¬a,¬b) / n |
-| `rogers_tanimoto` | (a,b + ¬a,¬b) / (n + (a + b − 2·a,b)) |
-| `hamming` | (a + b − 2·a,b) / n |
+| Metric | Formula | Description |
+|--------|---------|-------------|
+| `jaccard` | a,b / (a + b − a,b) | Fraction of the union that is the intersection. Ignores ¬a,¬b |
+| `cosine` | support / √(coverage × prevalence) | Normalized dot product similarity. Like lift but dampened |
+| `kulczynski` | 0.5 × (confidence + reverse_confidence) | Average of both conditional probabilities. Symmetric |
+| `sokal_sneath` | 2·a,b / (a + b) | Double-weighted overlap similarity |
+| `sokal_michener` | (a,b + ¬a,¬b) / n | Simple matching coefficient — counts all agreements |
+| `rogers_tanimoto` | (a,b + ¬a,¬b) / (n + (a + b − 2·a,b)) | Adjusted matching — penalizes disagreements more heavily |
+| `hamming` | (a + b − 2·a,b) / n | Fraction of transactions where X and Y disagree (distance metric) |
+| `lerman_similarity` | (P(X∪Y) − P(X)·P(Y)) / √(P(X)·P(Y)) | Normalized deviation of union from expected under independence |
 
 ### Statistical Tests
-| Metric | Formula |
-|--------|---------|
-| `chi_squared` | Pearson's χ² statistic |
-| `phi_coefficient` | leverage / √(coverage × (1−coverage) × prevalence × (1−prevalence)) |
-| `odds_ratio` | (a,b × ¬a,¬b) / (a,¬b × ¬a,b) with Haldane correction |
-| `yules_q` | (OR − 1) / (OR + 1) |
-| `yules_y` | (√OR − 1) / (√OR + 1) |
-| `kappa` | Cohen's kappa coefficient |
-| `p_value_approximation` | exp(−χ² / 2) |
+| Metric | Formula | Description |
+|--------|---------|-------------|
+| `chi_squared` | Σ (observed − expected)² / expected | Pearson's χ² test for independence. Higher = stronger association |
+| `local_chi_squared` | (support·n − expected)² / expected | Contribution of the (X,Y) cell to χ². Isolates this pair's effect |
+| `phi_coefficient` | leverage / √(coverage·(1−coverage)·prevalence·(1−prevalence)) | Normalized χ² for 2×2 tables. Range −1 to +1, like a correlation |
+| `odds_ratio` | (a,b × ¬a,¬b) / (a,¬b × ¬a,b) | Odds of Y with X vs without. Uses Haldane +0.5 correction. Range 0 to ∞ |
+| `yules_q` | (OR − 1) / (OR + 1) | Normalized odds ratio. Range −1 to +1 |
+| `yules_y` | (√OR − 1) / (√OR + 1) | Alternative normalized OR, more conservative than Yule's Q |
+| `kappa` | (observed agreement − expected) / (1 − expected) | Cohen's kappa — agreement beyond chance. Range −1 to +1 |
+| `p_value_approximation` | exp(−χ² / 2) | Quick approximate p-value from χ². Useful for ranking, not exact |
 
 ### Information-Theoretic
-| Metric | Formula |
-|--------|---------|
-| `mutual_information` | support × log₂(support / (coverage × prevalence)) |
-| `j_measure` | support × log₂(conf / prev) + (coverage − support) × log₂((1−conf) / (1−prev)) |
-| `weight_of_evidence` | log(P(X\|Y) / P(X\|¬Y)) with Laplace smoothing |
-| `importance` | log₁₀(confidence / (1 − confidence)) |
+| Metric | Formula | Description |
+|--------|---------|-------------|
+| `mutual_information` | support × log₂(support / (coverage × prevalence)) | Shared information in bits. 0 = independent |
+| `j_measure` | support·log₂(conf/prev) + (coverage−support)·log₂((1−conf)/(1−prev)) | Cross-entropy based rule quality — accounts for confirmation and disconfirmation |
+| `weight_of_evidence` | log(P(X\|Y) / P(X\|¬Y)) with Laplace smoothing | Log-odds that Y is evidence for X. Positive = supportive, negative = contradicts |
+| `importance` | log₁₀(confidence / (1 − confidence)) | Log-odds of confidence. Range −∞ to +∞, 0 means 50% confidence |
 
-### Interestingness
-| Metric | Formula |
-|--------|---------|
-| `added_value` | confidence − prevalence |
-| `certainty_factor` | (confidence − prevalence) / (1 − prevalence) |
-| `zhangs_metric` | (confidence − P(Y\|¬X)) / max(confidence, P(Y\|¬X)) |
-| `sebag_schoenauer` | confidence / (1 − confidence) |
-| `relative_risk` | confidence / P(Y\|¬X) |
-| `klosgen` | √support × added_value |
-| `rule_power_factor` | support × confidence |
-| `gini_index` | coverage × (conf² + (1−conf)²) + (1−coverage) × (P(Y\|¬X)² + P(¬Y\|¬X)²) − prev² − (1−prev)² |
-| `collective_strength` | (support + (1−coverage−prevalence+support)) / (coverage×prevalence + (1−coverage)×(1−prevalence)) × ... |
+### Interestingness & Rule Quality
+| Metric | Formula | Description |
+|--------|---------|-------------|
+| `added_value` | confidence − prevalence | How much X increases the probability of Y above the baseline |
+| `improvement` | confidence − P(Y\|¬X) | How much better the rule X→Y is compared to ¬X→Y |
+| `certainty_factor` | (confidence − prevalence) / (1 − prevalence) | Normalized confidence gain. Range −1 to +1, 0 = no gain |
+| `zhangs_metric` | (confidence − P(Y\|¬X)) / max(confidence, P(Y\|¬X)) | Directional association. Range −1 to +1, robust to marginal changes |
+| `sebag_schoenauer` | confidence / (1 − confidence) | Ratio of positive to negative examples. Higher = stronger rule |
+| `relative_risk` | confidence / P(Y\|¬X) | Risk ratio — how much X increases the risk of Y vs absence of X |
+| `relative_difference` | (confidence − prevalence) / prevalence | Relative gain in confidence over the base rate |
+| `difference_of_confidence` | confidence − P(Y\|¬X) | Absolute difference between conditional probabilities |
+| `klosgen` | √support × added_value | Support-weighted added value. Balances frequency and strength |
+| `rule_power_factor` | support × confidence | Combined measure of rule frequency and reliability |
+| `gini_index` | support × (1 − conf² − (1−conf)²) | How much knowing X reduces uncertainty about Y |
+| `collective_strength` | support·(1−support) / ((cov·prev−sup)·(cov+prev−sup)) | Ratio of observed to expected deviations from independence |
+| `interestingness` | confidence × reverse_confidence × (1 − confidence) | High when rule is strong in both directions but not trivial |
+| `comprehensibility` | log(1 + prevalence) / log(1 + support) | Ratio of RHS complexity to rule complexity. Lower = simpler rule |
+
+### Directional & Specialized
+| Metric | Formula | Description |
+|--------|---------|-------------|
+| `casual_confidence` | 0.5 × (confidence + P(¬Y\|¬X)) | Average of forward rule and contrapositive |
+| `casual_support` | P(X∪Y) + (1 − support) | Broad co-occurrence including complementary pairs |
+| `confirmed_confidence` | confidence − P(¬Y\|X) | Difference between positive and negative confidence |
+| `counter_example_rate` | (a,b + ¬a,b) / n | Fraction of transactions where Y appears (with or without X) |
+| `implication_index` | (support − coverage·prevalence) / √(coverage·prevalence) | Standardized deviation from expected support, like a z-score |
+| `lambda` | Goodman-Kruskal's λ | Proportional reduction in prediction error. 0 = no improvement |
+| `least_contradiction` | (P(X∪Y) − (1−prevalence) − support) / prevalence | Penalizes contradictory evidence |
+| `confidence_boost` | confidence / (confidence − improvement) | Ratio of confidence to the ¬X baseline |
+| `lift_increase` | (lift − 1) / prevalence | Lift deviation normalized by prevalence |
+| `standardized_lift` | (lift − 1) / (lift + 1) | Bounded version of lift. Range −1 to +1 |
+| `varying_rates_liaison` | lift − 1 | Simple deviation from independence. 0 = independent |
+| `support_vrl` | support × (lift − 1) | Support-weighted liaison — balances frequency and deviation |
+| `imbalance_ratio` | (coverage − prevalence) / (coverage + prevalence − support) | Asymmetry between X and Y frequency. 0 = balanced |
+| `hyper_confidence` | confidence / P(¬Y\|X) | Ratio of correct to incorrect predictions |
+| `hyper_lift` | confidence / P(Y\|¬X) | How much better X→Y is vs ¬X→Y (same as relative_risk) |
+| `relative_linkage_disequilibrium` | D / (D + min) piecewise | Normalized linkage disequilibrium. Range −1 to +1 |
+
+### Fisher Transforms
+| Metric | Formula | Description |
+|--------|---------|-------------|
+| `fisher_transformation_confidence` | 2·arcsin(√confidence) | Variance-stabilizing transform. Useful for statistical comparisons |
+| `fisher_transformation_reverse_confidence` | 2·arcsin(√reverse_confidence) | Variance-stabilizing transform of reverse confidence |
 
 ### Smoothed & Confidence Intervals
-| Metric | Formula |
-|--------|---------|
-| `confidence_laplace` | (a,b + 2) / (a + 4) |
-| `confidence_lower` | confidence − 1.96 × SE |
-| `confidence_upper` | confidence + 1.96 × SE |
-| `odds_ratio_lower` | exp(ln(OR) − 1.96 × SE_log_OR) |
-| `odds_ratio_upper` | exp(ln(OR) + 1.96 × SE_log_OR) |
+| Metric | Formula | Description |
+|--------|---------|-------------|
+| `confidence_laplace` | (a,b + 2) / (a + 4) | Laplace-smoothed confidence. Handles zero counts gracefully |
+| `importance_laplace` | log₁₀(conf_laplace / (1 − conf_laplace)) | Laplace-smoothed importance. Stable for small samples |
+| `confidence_lower` | confidence − 1.96 × SE | 95% CI lower bound for confidence |
+| `confidence_upper` | confidence + 1.96 × SE | 95% CI upper bound for confidence |
+| `confidence_lower_laplace` | conf_laplace − 1.96 × SE_laplace | 95% CI lower bound (Laplace-smoothed) |
+| `confidence_upper_laplace` | conf_laplace + 1.96 × SE_laplace | 95% CI upper bound (Laplace-smoothed) |
+| `odds_ratio_lower` | exp(ln(OR) − 1.96 × SE_log_OR) | 95% CI lower bound for odds ratio |
+| `odds_ratio_upper` | exp(ln(OR) + 1.96 × SE_log_OR) | 95% CI upper bound for odds ratio |
 
 </details>
 
