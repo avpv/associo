@@ -35,6 +35,9 @@ pip install git+https://github.com/avpv/associo.git
    - [Lift](#lift--pyx--py)
    - [Jaccard Similarity](#jaccard-similarity)
    - [Leverage & Conviction](#leverage--conviction)
+   - [Statistical Tests — χ², Phi, Odds Ratio](#statistical-tests--χ²-phi-odds-ratio)
+   - [Information-Theoretic Metrics](#information-theoretic-metrics)
+   - [Interestingness & Rule Quality](#interestingness--rule-quality)
 3. [All 60+ Metrics — Complete Reference](#3-all-60-metrics--taxonomy)
 4. [Quick Start](#4-quick-start)
 5. [API Reference](#5-api-reference)
@@ -151,6 +154,75 @@ Jaccard focuses only on the **union** of X and Y — it completely ignores trans
 **Leverage** = P(X ∧ Y) − P(X)·P(Y) — the difference between observed and expected support. Ranges from −0.25 to +0.25. Zero means independence.
 
 **Conviction** = (1 − P(Y)) / (1 − confidence) — measures the ratio of the expected error rate to the observed error rate. Values above 1 indicate a positive association; ∞ means the rule never fails.
+
+---
+
+### Statistical Tests — χ², Phi, Odds Ratio
+
+**"Is the association statistically significant? How strong is it?"**
+
+<p align="center">
+  <img src="docs/img/statistical_tests.svg" alt="Statistical Tests — Chi-Squared, Phi, Odds Ratio" width="720"/>
+</p>
+
+These metrics answer the question: *could this association have appeared by chance?*
+
+| Metric | What it tells you | Range | Key value |
+|--------|------------------|-------|-----------|
+| **χ² (chi-squared)** | Strength of departure from independence | 0 to ∞ | Higher = stronger association |
+| **Phi coefficient (φ)** | Normalized χ² — a correlation for binary data | −1 to +1 | 0 = independent |
+| **Odds ratio** | How much the odds of Y change with X | 0 to ∞ | 1 = independent |
+| **Yule's Q** | Normalized odds ratio | −1 to +1 | 0 = independent |
+| **Cohen's kappa** | Agreement beyond chance | −1 to +1 | 0 = chance-level agreement |
+| **p-value approx.** | Rough significance estimate from χ² | 0 to 1 | <0.05 conventionally "significant" |
+
+> **When to use:** Chi-squared and phi are best for ranking pairs by association strength. Odds ratio is standard in epidemiology and A/B testing. Kappa is useful when comparing binary classifiers or annotators.
+
+---
+
+### Information-Theoretic Metrics
+
+**"How much do X and Y tell us about each other?"**
+
+<p align="center">
+  <img src="docs/img/information_theoretic.svg" alt="Information-Theoretic Metrics" width="720"/>
+</p>
+
+Information-theoretic metrics measure association in **bits of information** — how much knowing X reduces uncertainty about Y.
+
+| Metric | What it measures | Key property |
+|--------|-----------------|--------------|
+| **Mutual information** | Shared information between X and Y | Symmetric, always ≥ 0, 0 = independent |
+| **J-measure** | Rule quality via cross-entropy | Accounts for both confirmation and disconfirmation |
+| **Weight of evidence** | Log-odds that Y is evidence for X | Positive = supportive, negative = contradicts |
+| **Importance** | Log-odds of confidence | 0 means 50% confidence, unbounded |
+
+> **When to use:** Mutual information is ideal for feature selection and comparing pairs on a common scale. J-measure is considered one of the best single measures for rule quality. Weight of evidence is widely used in credit scoring and fraud detection.
+
+---
+
+### Interestingness & Rule Quality
+
+**"Is this rule actually useful — not just frequent?"**
+
+<p align="center">
+  <img src="docs/img/rule_quality.svg" alt="Interestingness and Rule Quality Metrics" width="720"/>
+</p>
+
+High support and confidence aren't enough — a rule can be frequent but trivial. These metrics separate *genuinely interesting* rules from noise.
+
+| Metric | Formula intuition | Best for |
+|--------|------------------|----------|
+| **Added value** | confidence − prevalence | How much X boosts P(Y) above baseline |
+| **Certainty factor** | Added value normalized to [−1, +1] | Comparing rules with different base rates |
+| **Zhang's metric** | Directional, bounded [−1, +1] | Robust ranking — insensitive to marginal changes |
+| **Improvement** | conf(X→Y) − conf(¬X→Y) | How much better X is than "not X" at predicting Y |
+| **Klösgen** | √support × added_value | Balancing frequency and strength |
+| **Rule power factor** | support × confidence | Simple composite of frequency and reliability |
+| **Sebag-Schoenauer** | conf / (1 − conf) | Ratio of positive to negative evidence |
+| **Gini index** | Reduction in uncertainty about Y | Variable importance / feature selection |
+
+> **When to use:** Zhang's metric is recommended as a general-purpose ranking metric — it's bounded, symmetric around zero, and robust. Added value and certainty factor are intuitive for business reporting. Klösgen is good when you want to penalize rare rules.
 
 ---
 
@@ -361,10 +433,30 @@ result = association_measures(counts, measures=["support", "confidence", "lift"]
 
 ## 6. Graph Algorithms
 
-Build graphs from association metrics and discover structure:
+Build graphs from association metrics and discover structure. Each algorithm treats items as **nodes** and similarity scores as **weighted edges**.
+
+<p align="center">
+  <img src="docs/img/graph_algorithms.svg" alt="Graph Algorithms Comparison" width="780"/>
+</p>
+
+### Choosing the Right Algorithm
+
+| Goal | Algorithm | Overlapping? | Key parameter |
+|------|-----------|-------------|---------------|
+| Auto-detect clusters with exemplars | `clusters` | No | `cluster_preference_factor` |
+| Find natural communities (most popular) | `communities` | No | `community_resolution` |
+| Fast large-scale grouping | `label_propagation` | No | `min_edge_weight` |
+| Items in multiple groups | `label_propagation_overlapping` | **Yes** | `threshold` |
+| Fully-connected subgroups | `maximal_cliques` | **Yes** | `min_clique_size` |
+| Overlapping via clique merging | `k_clique_communities` | **Yes** | `k` |
+| Isolated groups (simplest) | `connected_components` | No | `min_edge_weight` |
+
+### Usage
 
 ```python
 from associo import clusters, communities, label_propagation
+from associo import maximal_cliques, k_clique_communities, connected_components
+from associo import label_propagation_overlapping
 
 similarity = pl.DataFrame({
     "item_a": ["A", "A", "B", "C"],
@@ -372,21 +464,37 @@ similarity = pl.DataFrame({
     "sim":    [0.8, 0.3, 0.7, 0.9],
 })
 
-# Affinity Propagation
+# Affinity Propagation — auto-detects number of clusters
 cl = clusters(similarity, column_lhs="item_a", column_rhs="item_b", column_similarity="sim")
 
-# Louvain communities
+# Louvain communities — best general-purpose choice
 comm = communities(similarity, column_lhs="item_a", column_rhs="item_b", column_similarity="sim")
 
-# Fast label propagation
+# Label propagation — fast for large graphs
 lp = label_propagation(similarity, column_lhs="item_a", column_rhs="item_b", column_similarity="sim")
+
+# Maximal cliques — find tightly-knit groups (overlapping)
+clq = maximal_cliques(similarity, column_lhs="item_a", column_rhs="item_b", column_similarity="sim")
+
+# Connected components — which items are linked at all?
+cc = connected_components(similarity, column_lhs="item_a", column_rhs="item_b", column_similarity="sim")
 ```
+
+> **Tip:** Start with `communities()` (Louvain) — it works well on most data. Use `clusters()` when you want automatic exemplar selection. Switch to overlapping methods (`maximal_cliques`, `k_clique_communities`, `label_propagation_overlapping`) when items naturally belong to multiple groups.
 
 ---
 
 ## 7. Embedding & Visualization
 
-Project items into 2D space based on their pairwise distances:
+Project items into 2D space based on their pairwise distances using **t-SNE** (t-distributed Stochastic Neighbor Embedding).
+
+<p align="center">
+  <img src="docs/img/tsne_embedding.svg" alt="t-SNE Embedding — Distance Matrix to 2D" width="720"/>
+</p>
+
+t-SNE preserves **local neighborhood structure**: items that are similar (low distance) stay close together in 2D; dissimilar items are pushed apart. This makes it ideal for visualizing clusters of associated items.
+
+### Usage
 
 ```python
 from associo import embedding
@@ -400,6 +508,16 @@ distances = pl.DataFrame({
 coords = embedding(distances, column_lhs="item_a", column_rhs="item_b", column_distance="dist")
 # Returns DataFrame with columns: item, x, y
 ```
+
+### Tuning Perplexity
+
+| Perplexity | Effect | Use when |
+|-----------|--------|----------|
+| **5–10** | Tight local clusters, may miss global structure | Few items (<50) or very distinct groups |
+| **30** (default) | Good balance of local and global | Most cases |
+| **40–50** | More global structure, clusters may merge | Many items (>500) or gradual similarity |
+
+> **Tip:** Convert any similarity metric to a distance with `1 − similarity`, then pass to `embedding()`. Combine with `communities()` or `clusters()` to color-code the scatter plot by group.
 
 ---
 
