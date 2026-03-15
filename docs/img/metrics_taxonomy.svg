@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 520">
+  <defs>
+    <style>
+      text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; }
+      .root { font-size: 15px; font-weight: 700; fill: #fff; }
+      .category { font-size: 12px; font-weight: 600; fill: #fff; }
+      .metric { font-size: 10px; fill: #24292f; }
+      .metric-bold { font-size: 10px; font-weight: 600; fill: #24292f; }
+      .connector { stroke: #d0d7de; stroke-width: 1.5; fill: none; }
+    </style>
+  </defs>
+
+  <!-- Root node -->
+  <rect x="290" y="10" width="200" height="36" rx="18" fill="#24292f"/>
+  <text x="390" y="33" text-anchor="middle" class="root">60+ Association Metrics</text>
+
+  <!-- Connectors from root -->
+  <path d="M 340 46 L 340 65 L 80 65 L 80 80" class="connector"/>
+  <path d="M 390 46 L 390 65 L 260 65 L 260 80" class="connector"/>
+  <path d="M 390 46 L 390 65 L 520 65 L 520 80" class="connector"/>
+  <path d="M 440 46 L 440 65 L 700 65 L 700 80" class="connector"/>
+
+  <!-- Category 1: Probabilistic -->
+  <rect x="10" y="80" width="140" height="30" rx="15" fill="#0969da"/>
+  <text x="80" y="100" text-anchor="middle" class="category">Probabilistic</text>
+  <rect x="10" y="118" width="140" height="145" rx="6" fill="#ddf4ff" stroke="#0969da" stroke-width="1"/>
+  <text x="20" y="138" class="metric-bold">support</text>
+  <text x="20" y="154" class="metric-bold">confidence</text>
+  <text x="20" y="170" class="metric-bold">lift</text>
+  <text x="20" y="186" class="metric">coverage (prevalence)</text>
+  <text x="20" y="202" class="metric">reverse_confidence</text>
+  <text x="20" y="218" class="metric">leverage</text>
+  <text x="20" y="234" class="metric">conviction</text>
+  <text x="20" y="250" class="metric">added_value</text>
+
+  <!-- Category 2: Similarity & Distance -->
+  <rect x="170" y="80" width="180" height="30" rx="15" fill="#2da44e"/>
+  <text x="260" y="100" text-anchor="middle" class="category">Similarity &amp; Distance</text>
+  <rect x="170" y="118" width="180" height="145" rx="6" fill="#dafbe1" stroke="#2da44e" stroke-width="1"/>
+  <text x="180" y="138" class="metric-bold">jaccard</text>
+  <text x="180" y="154" class="metric-bold">cosine</text>
+  <text x="180" y="170" class="metric">kulczynski</text>
+  <text x="180" y="186" class="metric">sokal_sneath</text>
+  <text x="180" y="202" class="metric">sokal_michener</text>
+  <text x="180" y="218" class="metric">rogers_tanimoto</text>
+  <text x="180" y="234" class="metric">hamming</text>
+  <text x="180" y="250" class="metric">lerman_similarity</text>
+
+  <!-- Category 3: Statistical Tests -->
+  <rect x="430" y="80" width="180" height="30" rx="15" fill="#8250df"/>
+  <text x="520" y="100" text-anchor="middle" class="category">Statistical Tests</text>
+  <rect x="430" y="118" width="180" height="145" rx="6" fill="#fbefff" stroke="#8250df" stroke-width="1"/>
+  <text x="440" y="138" class="metric-bold">chi_squared</text>
+  <text x="440" y="154" class="metric-bold">phi_coefficient</text>
+  <text x="440" y="170" class="metric-bold">odds_ratio</text>
+  <text x="440" y="186" class="metric">yules_q, yules_y</text>
+  <text x="440" y="202" class="metric">kappa (Cohen's)</text>
+  <text x="440" y="218" class="metric">p_value_approximation</text>
+  <text x="440" y="234" class="metric">relative_linkage_diseq.</text>
+  <text x="440" y="250" class="metric">fisher_transformation_*</text>
+
+  <!-- Category 4: Information-Theoretic -->
+  <rect x="630" y="80" width="140" height="30" rx="15" fill="#bf8700"/>
+  <text x="700" y="100" text-anchor="middle" class="category">Information Theory</text>
+  <rect x="630" y="118" width="140" height="100" rx="6" fill="#fff8c5" stroke="#bf8700" stroke-width="1"/>
+  <text x="640" y="138" class="metric-bold">mutual_information</text>
+  <text x="640" y="154" class="metric-bold">j_measure</text>
+  <text x="640" y="170" class="metric">weight_of_evidence</text>
+  <text x="640" y="186" class="metric">importance</text>
+  <text x="640" y="202" class="metric">importance_laplace</text>
+
+  <!-- Row 2 connectors -->
+  <path d="M 390 46 L 390 65 L 150 65 L 150 310" class="connector"/>
+  <path d="M 390 46 L 390 65 L 400 65 L 400 310" class="connector"/>
+  <path d="M 440 46 L 440 65 L 650 65 L 650 310" class="connector"/>
+
+  <!-- Category 5: Interestingness -->
+  <rect x="30" y="310" width="230" height="30" rx="15" fill="#cf222e"/>
+  <text x="145" y="330" text-anchor="middle" class="category">Interestingness Measures</text>
+  <rect x="30" y="348" width="230" height="162" rx="6" fill="#ffebe9" stroke="#cf222e" stroke-width="1"/>
+  <text x="40" y="368" class="metric">zhangs_metric</text>
+  <text x="40" y="384" class="metric">certainty_factor</text>
+  <text x="40" y="400" class="metric">sebag_schoenauer</text>
+  <text x="40" y="416" class="metric">relative_risk</text>
+  <text x="40" y="432" class="metric">klosgen</text>
+  <text x="40" y="448" class="metric">rule_power_factor</text>
+  <text x="40" y="464" class="metric">collective_strength</text>
+  <text x="40" y="480" class="metric">gini_index</text>
+  <text x="40" y="496" class="metric">+ 10 more...</text>
+
+  <!-- Category 6: Smoothed & CI -->
+  <rect x="290" y="310" width="210" height="30" rx="15" fill="#1b7c83"/>
+  <text x="395" y="330" text-anchor="middle" class="category">Smoothed &amp; Conf. Intervals</text>
+  <rect x="290" y="348" width="210" height="115" rx="6" fill="#ddf4ff" stroke="#1b7c83" stroke-width="1"/>
+  <text x="300" y="368" class="metric">confidence_laplace</text>
+  <text x="300" y="384" class="metric">confidence_lower / _upper</text>
+  <text x="300" y="400" class="metric">confidence_lower_laplace</text>
+  <text x="300" y="416" class="metric">confidence_upper_laplace</text>
+  <text x="300" y="432" class="metric">odds_ratio_lower / _upper</text>
+  <text x="300" y="448" class="metric">improvement</text>
+
+  <!-- Category 7: Directional -->
+  <rect x="540" y="310" width="220" height="30" rx="15" fill="#953800"/>
+  <text x="650" y="330" text-anchor="middle" class="category">Directional Improvement</text>
+  <rect x="540" y="348" width="220" height="130" rx="6" fill="#fff1e5" stroke="#953800" stroke-width="1"/>
+  <text x="550" y="368" class="metric">confirmed_confidence</text>
+  <text x="550" y="384" class="metric">difference_of_confidence</text>
+  <text x="550" y="400" class="metric">standardized_lift</text>
+  <text x="550" y="416" class="metric">varying_rates_liaison</text>
+  <text x="550" y="432" class="metric">hyper_confidence</text>
+  <text x="550" y="448" class="metric">hyper_lift</text>
+  <text x="550" y="464" class="metric">confidence_boost</text>
+</svg>
