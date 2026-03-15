@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300">
+  <defs>
+    <style>
+      text { font-family: 'Segoe UI', system-ui, sans-serif; }
+    </style>
+  </defs>
+  <rect width="720" height="300" rx="16" fill="#fafbfc" stroke="#e1e4e8" stroke-width="1.5"/>
+
+  <!-- Title -->
+  <text x="360" y="32" text-anchor="middle" font-size="16" font-weight="bold" fill="#24292e">Information-Theoretic Metrics</text>
+
+  <!-- Mutual Information - Venn diagram of entropies -->
+  <rect x="30" y="50" width="320" height="230" rx="12" fill="#fff" stroke="#d1d5da" stroke-width="1"/>
+  <text x="190" y="75" text-anchor="middle" font-size="13" font-weight="bold" fill="#1565c0">Mutual Information I(X;Y)</text>
+
+  <!-- H(X) circle -->
+  <circle cx="160" cy="160" r="65" fill="#bbdefb" fill-opacity="0.4" stroke="#1565c0" stroke-width="1.5"/>
+  <text x="120" y="160" text-anchor="middle" font-size="11" fill="#1565c0">H(X)</text>
+
+  <!-- H(Y) circle -->
+  <circle cx="220" cy="160" r="65" fill="#c8e6c9" fill-opacity="0.4" stroke="#2e7d32" stroke-width="1.5"/>
+  <text x="260" y="160" text-anchor="middle" font-size="11" fill="#2e7d32">H(Y)</text>
+
+  <!-- Overlap = MI -->
+  <text x="190" y="155" text-anchor="middle" font-size="12" font-weight="bold" fill="#6a1b9a">I(X;Y)</text>
+  <text x="190" y="170" text-anchor="middle" font-size="10" fill="#6a1b9a">shared</text>
+  <text x="190" y="183" text-anchor="middle" font-size="10" fill="#6a1b9a">bits</text>
+
+  <text x="190" y="215" text-anchor="middle" font-size="10" fill="#586069">I(X;Y) = support × log₂(support / (coverage × prevalence))</text>
+  <text x="190" y="233" text-anchor="middle" font-size="10" fill="#586069">= 0 → independent</text>
+  <text x="190" y="250" text-anchor="middle" font-size="10" fill="#586069">Higher → more shared information</text>
+  <text x="190" y="267" text-anchor="middle" font-size="14" font-weight="bold" fill="#1565c0">MI = 0.093 bits</text>
+
+  <!-- J-Measure and WoE -->
+  <rect x="380" y="50" width="310" height="230" rx="12" fill="#fff" stroke="#d1d5da" stroke-width="1"/>
+  <text x="535" y="75" text-anchor="middle" font-size="13" font-weight="bold" fill="#00695c">J-Measure &amp; Weight of Evidence</text>
+
+  <!-- J-Measure explanation -->
+  <text x="535" y="100" text-anchor="middle" font-size="12" font-weight="600" fill="#00897b">J-Measure</text>
+  <text x="535" y="118" text-anchor="middle" font-size="10" fill="#586069">Cross-entropy rule quality</text>
+
+  <!-- Bar chart for J-measure components -->
+  <rect x="420" y="130" width="100" height="20" rx="4" fill="#80cbc4"/>
+  <text x="425" y="144" font-size="9" fill="#004d40">Confirmation +0.054</text>
+  <rect x="420" y="155" width="40" height="20" rx="4" fill="#ffab91"/>
+  <text x="425" y="169" font-size="9" fill="#bf360c">Disconf −0.011</text>
+  <line x1="420" y1="185" x2="620" y2="185" stroke="#d1d5da" stroke-width="1"/>
+  <text x="535" y="200" text-anchor="middle" font-size="11" font-weight="bold" fill="#00695c">J = 0.043</text>
+
+  <!-- Weight of Evidence -->
+  <text x="535" y="225" text-anchor="middle" font-size="12" font-weight="600" fill="#e65100">Weight of Evidence</text>
+  <text x="535" y="243" text-anchor="middle" font-size="10" fill="#586069">WoE = log(P(X|Y) / P(X|¬Y))</text>
+  <text x="535" y="260" text-anchor="middle" font-size="10" fill="#586069">Positive → Y is evidence for X</text>
+  <text x="535" y="275" text-anchor="middle" font-size="10" fill="#586069">Negative → Y is evidence against X</text>
+</svg>

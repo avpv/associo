@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300">
+  <defs>
+    <style>
+      text { font-family: 'Segoe UI', system-ui, sans-serif; }
+    </style>
+  </defs>
+  <rect width="720" height="300" rx="16" fill="#fafbfc" stroke="#e1e4e8" stroke-width="1.5"/>
+
+  <!-- Title -->
+  <text x="360" y="30" text-anchor="middle" font-size="16" font-weight="bold" fill="#24292e">t-SNE Embedding — From Distance Matrix to 2D Map</text>
+
+  <!-- Left: Distance matrix -->
+  <rect x="30" y="55" width="200" height="220" rx="12" fill="#fff" stroke="#d1d5da" stroke-width="1"/>
+  <text x="130" y="78" text-anchor="middle" font-size="12" font-weight="bold" fill="#586069">Distance Matrix</text>
+
+  <!-- Matrix grid -->
+  <text x="95" y="100" text-anchor="middle" font-size="9" fill="#586069">A</text>
+  <text x="120" y="100" text-anchor="middle" font-size="9" fill="#586069">B</text>
+  <text x="145" y="100" text-anchor="middle" font-size="9" fill="#586069">C</text>
+  <text x="170" y="100" text-anchor="middle" font-size="9" fill="#586069">D</text>
+
+  <text x="75" y="118" text-anchor="middle" font-size="9" fill="#586069">A</text>
+  <text x="75" y="140" text-anchor="middle" font-size="9" fill="#586069">B</text>
+  <text x="75" y="162" text-anchor="middle" font-size="9" fill="#586069">C</text>
+  <text x="75" y="184" text-anchor="middle" font-size="9" fill="#586069">D</text>
+
+  <!-- Matrix cells (heatmap) -->
+  <rect x="83" y="106" width="24" height="18" fill="#e8eaf6"/>
+  <text x="95" y="118" text-anchor="middle" font-size="8" fill="#283593">0.0</text>
+  <rect x="108" y="106" width="24" height="18" fill="#c5cae9"/>
+  <text x="120" y="118" text-anchor="middle" font-size="8" fill="#283593">0.2</text>
+  <rect x="133" y="106" width="24" height="18" fill="#7986cb"/>
+  <text x="145" y="118" text-anchor="middle" font-size="8" fill="#fff">0.7</text>
+  <rect x="158" y="106" width="24" height="18" fill="#5c6bc0"/>
+  <text x="170" y="118" text-anchor="middle" font-size="8" fill="#fff">0.8</text>
+
+  <rect x="83" y="128" width="24" height="18" fill="#c5cae9"/>
+  <text x="95" y="140" text-anchor="middle" font-size="8" fill="#283593">0.2</text>
+  <rect x="108" y="128" width="24" height="18" fill="#e8eaf6"/>
+  <text x="120" y="140" text-anchor="middle" font-size="8" fill="#283593">0.0</text>
+  <rect x="133" y="128" width="24" height="18" fill="#9fa8da"/>
+  <text x="145" y="140" text-anchor="middle" font-size="8" fill="#283593">0.3</text>
+  <rect x="158" y="128" width="24" height="18" fill="#5c6bc0"/>
+  <text x="170" y="140" text-anchor="middle" font-size="8" fill="#fff">0.9</text>
+
+  <rect x="83" y="150" width="24" height="18" fill="#7986cb"/>
+  <text x="95" y="162" text-anchor="middle" font-size="8" fill="#fff">0.7</text>
+  <rect x="108" y="150" width="24" height="18" fill="#9fa8da"/>
+  <text x="120" y="162" text-anchor="middle" font-size="8" fill="#283593">0.3</text>
+  <rect x="133" y="150" width="24" height="18" fill="#e8eaf6"/>
+  <text x="145" y="162" text-anchor="middle" font-size="8" fill="#283593">0.0</text>
+  <rect x="158" y="150" width="24" height="18" fill="#c5cae9"/>
+  <text x="170" y="162" text-anchor="middle" font-size="8" fill="#283593">0.1</text>
+
+  <rect x="83" y="172" width="24" height="18" fill="#5c6bc0"/>
+  <text x="95" y="184" text-anchor="middle" font-size="8" fill="#fff">0.8</text>
+  <rect x="108" y="172" width="24" height="18" fill="#5c6bc0"/>
+  <text x="120" y="184" text-anchor="middle" font-size="8" fill="#fff">0.9</text>
+  <rect x="133" y="172" width="24" height="18" fill="#c5cae9"/>
+  <text x="145" y="184" text-anchor="middle" font-size="8" fill="#283593">0.1</text>
+  <rect x="158" y="172" width="24" height="18" fill="#e8eaf6"/>
+  <text x="170" y="184" text-anchor="middle" font-size="8" fill="#283593">0.0</text>
+
+  <text x="130" y="215" text-anchor="middle" font-size="10" fill="#586069">N×N pairwise distances</text>
+  <text x="130" y="232" text-anchor="middle" font-size="10" fill="#586069">High-dimensional space</text>
+
+  <!-- Arrow -->
+  <text x="270" y="158" text-anchor="middle" font-size="11" font-weight="bold" fill="#586069">t-SNE</text>
+  <line x1="250" y1="165" x2="310" y2="165" stroke="#586069" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <defs>
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#586069"/>
+    </marker>
+  </defs>
+  <text x="280" y="182" text-anchor="middle" font-size="9" fill="#586069">preserves</text>
+  <text x="280" y="194" text-anchor="middle" font-size="9" fill="#586069">local</text>
+  <text x="280" y="206" text-anchor="middle" font-size="9" fill="#586069">distances</text>
+
+  <!-- Right: 2D scatter plot -->
+  <rect x="330" y="55" width="370" height="220" rx="12" fill="#fff" stroke="#d1d5da" stroke-width="1"/>
+  <text x="515" y="78" text-anchor="middle" font-size="12" font-weight="bold" fill="#586069">2D Embedding</text>
+
+  <!-- Axes -->
+  <line x1="365" y1="245" x2="670" y2="245" stroke="#e0e0e0" stroke-width="1"/>
+  <line x1="365" y1="90" x2="365" y2="245" stroke="#e0e0e0" stroke-width="1"/>
+  <text x="515" y="262" text-anchor="middle" font-size="9" fill="#bdbdbd">x</text>
+  <text x="352" y="170" text-anchor="middle" font-size="9" fill="#bdbdbd">y</text>
+
+  <!-- Cluster 1: A and B close together -->
+  <circle cx="420" cy="140" r="12" fill="#bbdefb" stroke="#1565c0" stroke-width="2"/>
+  <text x="420" y="144" text-anchor="middle" font-size="11" font-weight="bold" fill="#1565c0">A</text>
+  <circle cx="450" cy="155" r="12" fill="#bbdefb" stroke="#1565c0" stroke-width="2"/>
+  <text x="450" y="159" text-anchor="middle" font-size="11" font-weight="bold" fill="#1565c0">B</text>
+
+  <!-- Cluster 2: C and D close together but far from A,B -->
+  <circle cx="590" cy="200" r="12" fill="#c8e6c9" stroke="#2e7d32" stroke-width="2"/>
+  <text x="590" y="204" text-anchor="middle" font-size="11" font-weight="bold" fill="#2e7d32">C</text>
+  <circle cx="620" cy="180" r="12" fill="#c8e6c9" stroke="#2e7d32" stroke-width="2"/>
+  <text x="620" y="184" text-anchor="middle" font-size="11" font-weight="bold" fill="#2e7d32">D</text>
+
+  <!-- Distance annotations -->
+  <line x1="432" y1="148" x2="440" y2="153" stroke="#90caf9" stroke-width="1" stroke-dasharray="3"/>
+  <text x="445" y="135" font-size="8" fill="#1565c0">close = similar</text>
+
+  <line x1="462" y1="160" x2="578" y2="198" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="3"/>
+  <text x="530" y="170" font-size="8" fill="#757575">far = different</text>
+
+  <!-- Perplexity note -->
+  <text x="515" y="240" text-anchor="middle" font-size="9" fill="#586069">perplexity: low=local detail, high=global structure</text>
+</svg>
