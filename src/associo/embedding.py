@@ -9,8 +9,15 @@ from scipy.sparse import csr_matrix
 from scipy.sparse.linalg import eigsh
 from sklearn.manifold import TSNE
 
+from associo._matrix import pairwise_matrix
 from associo._validation import validate_columns
 from associo.graph import _build_graph
+
+_EMBED_SCHEMA = {"item": pl.Utf8, "embedding": pl.List(pl.Float64)}
+
+
+def _embedding_result(records: list[dict]) -> pl.DataFrame:
+    return pl.DataFrame(records, schema=_EMBED_SCHEMA)
 
 
 def embedding(
@@ -41,32 +48,11 @@ def embedding(
     if isinstance(df, pl.LazyFrame):
         df = df.collect()
 
-    # Symmetrise: take min distance for each pair (distance is symmetric)
-    forward = df.select(
-        pl.col(column_lhs).alias("a"),
-        pl.col(column_rhs).alias("b"),
-        pl.col(column_distance).alias("dist"),
+    # Distance is symmetric; missing pairs default to 1.0, self-distance to 0.
+    items, mat = pairwise_matrix(
+        df, column_lhs, column_rhs, column_distance,
+        fill_value=1.0, agg="min", zero_diagonal=True,
     )
-    reverse = df.select(
-        pl.col(column_rhs).alias("a"),
-        pl.col(column_lhs).alias("b"),
-        pl.col(column_distance).alias("dist"),
-    )
-    sym = pl.concat([forward, reverse]).group_by("a", "b").agg(pl.col("dist").min()).sort("a", "b")
-
-    all_items = sorted(set(sym["a"].to_list()) | set(sym["b"].to_list()))
-
-    pivot = sym.pivot(on="b", index="a", values="dist").fill_null(1.0)
-    # Ensure all items appear as columns and self-distance is 0
-    for item in all_items:
-        if item not in pivot.columns:
-            pivot = pivot.with_columns(pl.lit(1.0).alias(item))
-    pivot = pivot.sort("a")
-
-    items = pivot["a"].to_list()
-    mat = pivot.select(items).to_numpy()
-    # Ensure diagonal is 0 (self-distance)
-    np.fill_diagonal(mat, 0.0)
 
     tsne = TSNE(
         n_components=2,
@@ -199,17 +185,17 @@ def spectral_embedding(
     G = _build_graph(edges, column_lhs, column_rhs, column_similarity)
 
     if G.number_of_nodes() == 0:
-        return pl.DataFrame(schema={"item": pl.Utf8, "embedding": pl.List(pl.Float64)})
+        return _embedding_result([])
 
     if G.number_of_nodes() == 1:
         node = next(iter(G.nodes()))
-        return pl.DataFrame({"item": [str(node)], "embedding": [[0.0] * dim]})
+        return _embedding_result([{"item": str(node), "embedding": [0.0] * dim}])
 
     records: list[dict] = []
     for component in nx.connected_components(G):
         records.extend(_embed_component(G.subgraph(component), dim, rng))
 
-    return pl.DataFrame(records, schema={"item": pl.Utf8, "embedding": pl.List(pl.Float64)})
+    return _embedding_result(records)
 
 
 # ---------------------------------------------------------------------------
@@ -433,11 +419,11 @@ def node2vec(
     G = _build_graph(edges, column_lhs, column_rhs, column_similarity, min_edge_weight)
 
     if G.number_of_nodes() == 0:
-        return pl.DataFrame(schema={"item": pl.Utf8, "embedding": pl.List(pl.Float64)})
+        return _embedding_result([])
 
     if G.number_of_nodes() == 1:
         node = next(iter(G.nodes()))
-        return pl.DataFrame({"item": [str(node)], "embedding": [[0.0] * dim]})
+        return _embedding_result([{"item": str(node), "embedding": [0.0] * dim}])
 
     nodes = list(G.nodes())
     node_to_idx = {node: i for i, node in enumerate(nodes)}
@@ -454,4 +440,4 @@ def node2vec(
         {"item": str(node), "embedding": embeddings[node_to_idx[node]].tolist()}
         for node in nodes
     ]
-    return pl.DataFrame(records, schema={"item": pl.Utf8, "embedding": pl.List(pl.Float64)})
+    return _embedding_result(records)

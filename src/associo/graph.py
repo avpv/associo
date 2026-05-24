@@ -6,10 +6,11 @@ import random
 from collections import Counter
 
 import networkx as nx
+import numpy as np
 import polars as pl
 from sklearn.cluster import AffinityPropagation
-import numpy as np
 
+from associo._matrix import pairwise_matrix
 from associo._validation import validate_columns
 
 
@@ -77,32 +78,9 @@ def clusters(
     if isinstance(df, pl.LazyFrame):
         df = df.collect()
 
-    # Symmetrise edges: add reverse direction, then take max for each pair
-    forward = df.select(
-        pl.col(column_lhs).alias("a"),
-        pl.col(column_rhs).alias("b"),
-        pl.col(column_similarity).alias("sim"),
+    items, mat = pairwise_matrix(
+        df, column_lhs, column_rhs, column_similarity, fill_value=0.0, agg="max",
     )
-    reverse = df.select(
-        pl.col(column_rhs).alias("a"),
-        pl.col(column_lhs).alias("b"),
-        pl.col(column_similarity).alias("sim"),
-    )
-    sym = pl.concat([forward, reverse]).group_by("a", "b").agg(pl.col("sim").max()).sort("a", "b")
-
-    # Collect all unique items
-    all_items = sorted(
-        set(sym["a"].to_list()) | set(sym["b"].to_list())
-    )
-
-    pivot = sym.pivot(on="b", index="a", values="sim").fill_null(0)
-    # Ensure all items appear as both rows and columns
-    for item in all_items:
-        if item not in pivot.columns:
-            pivot = pivot.with_columns(pl.lit(0.0).alias(item))
-    pivot = pivot.sort("a")
-    items = pivot["a"].to_list()
-    mat = pivot.select(items).to_numpy()
 
     similarities = mat[mat > 0]
     pref = float(np.percentile(similarities, np.clip(cluster_preference_factor, 0, 100))) if len(similarities) > 0 else 0.0
