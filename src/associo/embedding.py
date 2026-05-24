@@ -89,6 +89,21 @@ def embedding(
 # Spectral embedding
 # ---------------------------------------------------------------------------
 
+def _prepare_edges(
+    df: pl.DataFrame,
+    column_lhs: str,
+    column_rhs: str,
+    column_similarity: str,
+) -> pl.DataFrame:
+    """Embedding-specific edge cleanup: drop self-loops, null endpoints and
+    non-positive weights (the latter would break alias sampling / Laplacians).
+    The generic graph construction is left to ``graph._build_graph``."""
+    return df.filter(
+        (pl.col(column_lhs) != pl.col(column_rhs))
+        & (pl.col(column_similarity) > 0)
+    )
+
+
 def _embed_component(G: nx.Graph, dim: int, rng: np.random.Generator) -> list[dict]:
     nodes = list(G.nodes())
     n = len(nodes)
@@ -180,10 +195,8 @@ def spectral_embedding(
         df = df.collect()
 
     rng = np.random.default_rng(42)
-    G = _build_graph(
-        df, column_lhs, column_rhs, column_similarity,
-        accumulate_weights=True, drop_self_loops=True, require_positive=True,
-    )
+    edges = _prepare_edges(df, column_lhs, column_rhs, column_similarity)
+    G = _build_graph(edges, column_lhs, column_rhs, column_similarity)
 
     if G.number_of_nodes() == 0:
         return pl.DataFrame(schema={"item": pl.Utf8, "embedding": pl.List(pl.Float64)})
@@ -416,10 +429,8 @@ def node2vec(
         df = df.collect()
 
     rng = np.random.default_rng(42)
-    G = _build_graph(
-        df, column_lhs, column_rhs, column_similarity, min_edge_weight,
-        accumulate_weights=True, drop_self_loops=True, require_positive=True,
-    )
+    edges = _prepare_edges(df, column_lhs, column_rhs, column_similarity)
+    G = _build_graph(edges, column_lhs, column_rhs, column_similarity, min_edge_weight)
 
     if G.number_of_nodes() == 0:
         return pl.DataFrame(schema={"item": pl.Utf8, "embedding": pl.List(pl.Float64)})
