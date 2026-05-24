@@ -6,7 +6,7 @@
 
 *From Italian "associo" — I associate. A library for discovering associations and connections in data.*
 
-High-performance association analysis library built on [Polars](https://pola.rs/). Computes **60+ association metrics**, performs **graph clustering** and **community detection**, and provides **t-SNE embedding** for visualization.
+High-performance association analysis library built on [Polars](https://pola.rs/). Computes **60+ association metrics**, performs **graph clustering** and **community detection**, and provides **t-SNE, spectral & Node2Vec embeddings** for visualization and ML features.
 
 ```bash
 pip install git+https://github.com/avpv/associo.git
@@ -428,6 +428,8 @@ result = association_measures(counts, measures=["support", "confidence", "lift"]
 | `k_clique_communities` | K-clique percolation |
 | `label_propagation_overlapping` | SLPA-based overlapping communities |
 | `embedding` | t-SNE 2D projection from distance matrix |
+| `spectral_embedding` | Graph-Laplacian spectral embedding |
+| `node2vec` | Node2Vec embedding (biased random walks + skip-gram) |
 
 ---
 
@@ -519,6 +521,27 @@ coords = embedding(distances, column_lhs="item_a", column_rhs="item_b", column_d
 
 > **Tip:** Convert any similarity metric to a distance with `1 − similarity`, then pass to `embedding()`. Combine with `communities()` or `clusters()` to color-code the scatter plot by group.
 
+### Vector Embeddings
+
+For higher-dimensional vector representations (e.g. for nearest-neighbour search or as ML features), use `spectral_embedding` or `node2vec`. Both take a **similarity** edge list and return one `embedding` (List[Double]) per item, L2-normalized for cosine similarity.
+
+```python
+from associo import spectral_embedding, node2vec
+
+similarity = pl.DataFrame({
+    "item_a": ["A", "A", "B", "C"],
+    "item_b": ["B", "C", "C", "D"],
+    "sim":    [0.8, 0.3, 0.7, 0.9],
+})
+
+# Spectral embedding — eigenvectors of the normalized graph Laplacian
+spec = spectral_embedding(similarity, column_lhs="item_a", column_rhs="item_b", column_similarity="sim", dim=16)
+
+# Node2Vec — biased random walks + skip-gram (p/q control BFS vs DFS)
+n2v = node2vec(similarity, column_lhs="item_a", column_rhs="item_b", column_similarity="sim", dim=64, p=1.0, q=1.0)
+# Both return DataFrame with columns: item, embedding
+```
+
 ---
 
 ## 8. Algorithm Parameters
@@ -537,6 +560,15 @@ coords = embedding(distances, column_lhs="item_a", column_rhs="item_b", column_d
 | SLPA Overlapping | `threshold` | 0.1 | Label inclusion threshold (0–1) |
 | t-SNE | `perplexity` | 30 | 5–50; local vs global structure |
 | t-SNE | `n_iter` | 1000 | Iterations (1000–2000) |
+| Spectral | `dim` | 16 | Embedding dimensionality |
+| Node2Vec | `dim` | 64 | Embedding dimensionality |
+| Node2Vec | `walk_length` | 30 | Length of each random walk |
+| Node2Vec | `num_walks` | 10 | Walks started per node |
+| Node2Vec | `p` | 1.0 | Return param; <1 favours backtracking (BFS) |
+| Node2Vec | `q` | 1.0 | In-out param; <1 = DFS, >1 = BFS |
+| Node2Vec | `window` | 5 | Skip-gram window size |
+| Node2Vec | `n_iter` | 5 | Skip-gram training epochs |
+| Node2Vec | `min_edge_weight` | 0.0 | Edge weight threshold |
 
 ---
 
@@ -548,7 +580,7 @@ coords = embedding(distances, column_lhs="item_a", column_rhs="item_b", column_d
 │   ├── measures.py          # 60+ association metrics (Polars expressions)
 │   ├── associations.py      # Direct & combinatorial association extraction
 │   ├── graph.py             # Clustering, communities, cliques, components
-│   ├── embedding.py         # t-SNE dimensionality reduction
+│   ├── embedding.py         # t-SNE, spectral & Node2Vec embeddings
 │   └── _validation.py       # Input validation
 ├── tests/
 │   ├── test_measures.py
