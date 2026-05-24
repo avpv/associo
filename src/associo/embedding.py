@@ -10,6 +10,7 @@ from scipy.sparse.linalg import eigsh
 from sklearn.manifold import TSNE
 
 from associo._validation import validate_columns
+from associo.graph import _build_graph
 
 
 def embedding(
@@ -88,37 +89,7 @@ def embedding(
 # Spectral embedding
 # ---------------------------------------------------------------------------
 
-def _build_weighted_graph(
-    df: pl.DataFrame,
-    column_lhs: str,
-    column_rhs: str,
-    column_similarity: str,
-    min_edge_weight: float = 0.0,
-) -> nx.Graph:
-    """Build an undirected graph, accumulating weights on duplicate edges and
-    dropping self-loops, null endpoints and non-positive weights."""
-    filtered = df.filter(
-        pl.col(column_lhs).is_not_null()
-        & pl.col(column_rhs).is_not_null()
-        & (pl.col(column_lhs) != pl.col(column_rhs))
-    )
-    lhs_col = filtered[column_lhs].to_list()
-    rhs_col = filtered[column_rhs].to_list()
-    sim_col = filtered[column_similarity].to_list()
-
-    G = nx.Graph()
-    for lhs, rhs, sim in zip(lhs_col, rhs_col, sim_col):
-        weight = float(sim) if sim else 1.0
-        if weight <= 0 or weight < min_edge_weight:
-            continue
-        if G.has_edge(lhs, rhs):
-            G[lhs][rhs]["weight"] += weight
-        else:
-            G.add_edge(lhs, rhs, weight=weight)
-    return G
-
-
-def _embed_component(G: nx.Graph, dim: int) -> list[dict]:
+def _embed_component(G: nx.Graph, dim: int, rng: np.random.Generator) -> list[dict]:
     nodes = list(G.nodes())
     n = len(nodes)
 
@@ -130,14 +101,18 @@ def _embed_component(G: nx.Graph, dim: int) -> list[dict]:
     L = nx.normalized_laplacian_matrix(G, nodelist=nodes, weight="weight")
     L = csr_matrix(L, dtype=np.float64)
 
+    # Explicit starting vector keeps ARPACK deterministic without touching
+    # the global numpy RNG state.
+    v0 = rng.random(n)
+
     try:
         eigenvalues, eigenvectors = eigsh(
-            L, k=k_request, sigma=0, which="LM", tol=1e-6, maxiter=5000,
+            L, k=k_request, sigma=0, which="LM", tol=1e-6, maxiter=5000, v0=v0,
         )
     except Exception:
         try:
             eigenvalues, eigenvectors = eigsh(
-                L, k=k_request, which="SM", tol=1e-6, maxiter=5000,
+                L, k=k_request, which="SM", tol=1e-6, maxiter=5000, v0=v0,
             )
         except Exception:
             L_dense = L.toarray()
@@ -204,8 +179,11 @@ def spectral_embedding(
     if isinstance(df, pl.LazyFrame):
         df = df.collect()
 
-    np.random.seed(42)
-    G = _build_weighted_graph(df, column_lhs, column_rhs, column_similarity)
+    rng = np.random.default_rng(42)
+    G = _build_graph(
+        df, column_lhs, column_rhs, column_similarity,
+        accumulate_weights=True, drop_self_loops=True, require_positive=True,
+    )
 
     if G.number_of_nodes() == 0:
         return pl.DataFrame(schema={"item": pl.Utf8, "embedding": pl.List(pl.Float64)})
@@ -216,7 +194,7 @@ def spectral_embedding(
 
     records: list[dict] = []
     for component in nx.connected_components(G):
-        records.extend(_embed_component(G.subgraph(component), dim))
+        records.extend(_embed_component(G.subgraph(component), dim, rng))
 
     return pl.DataFrame(records, schema={"item": pl.Utf8, "embedding": pl.List(pl.Float64)})
 
@@ -243,10 +221,10 @@ def _alias_setup(probs: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     return J, q
 
 
-def _alias_draw(J: np.ndarray, q: np.ndarray) -> int:
+def _alias_draw(J: np.ndarray, q: np.ndarray, rng: np.random.Generator) -> int:
     K = len(J)
-    kk = np.random.randint(K)
-    return kk if np.random.rand() < q[kk] else J[kk]
+    kk = rng.integers(K)
+    return kk if rng.random() < q[kk] else J[kk]
 
 
 def _precompute_node_aliases(G: nx.Graph, nodes: list) -> dict:
@@ -290,7 +268,10 @@ def _precompute_edge_aliases(G: nx.Graph, p: float, q: float) -> dict:
     return alias_edges
 
 
-def _node2vec_walk(start, walk_length: int, alias_nodes: dict, alias_edges: dict) -> list:
+def _node2vec_walk(
+    start, walk_length: int, alias_nodes: dict, alias_edges: dict,
+    rng: np.random.Generator,
+) -> list:
     walk = [start]
     while len(walk) < walk_length:
         cur = walk[-1]
@@ -298,26 +279,26 @@ def _node2vec_walk(start, walk_length: int, alias_nodes: dict, alias_edges: dict
         if not neighbors:
             break
         if len(walk) == 1:
-            walk.append(neighbors[_alias_draw(J, q)])
+            walk.append(neighbors[_alias_draw(J, q, rng)])
         else:
             prev = walk[-2]
             J_e, q_e, nbrs_e = alias_edges[(prev, cur)]
             if not nbrs_e:
                 break
-            walk.append(nbrs_e[_alias_draw(J_e, q_e)])
+            walk.append(nbrs_e[_alias_draw(J_e, q_e, rng)])
     return walk
 
 
 def _generate_walks(
     G: nx.Graph, nodes: list, num_walks: int, walk_length: int,
-    alias_nodes: dict, alias_edges: dict,
+    alias_nodes: dict, alias_edges: dict, rng: np.random.Generator,
 ) -> list:
     walks = []
     for _ in range(num_walks):
         shuffled = list(nodes)
-        np.random.shuffle(shuffled)
+        rng.shuffle(shuffled)
         for start in shuffled:
-            walk = _node2vec_walk(start, walk_length, alias_nodes, alias_edges)
+            walk = _node2vec_walk(start, walk_length, alias_nodes, alias_edges, rng)
             if len(walk) > 1:
                 walks.append(walk)
     return walks
@@ -325,9 +306,9 @@ def _generate_walks(
 
 def _train_skipgram(
     walks: list, node_to_idx: dict, n: int, dim: int,
-    window: int, n_iter: int, lr: float,
+    window: int, n_iter: int, lr: float, rng: np.random.Generator,
 ) -> np.ndarray:
-    W_in = (np.random.rand(n, dim) - 0.5) / dim
+    W_in = (rng.random((n, dim)) - 0.5) / dim
     W_out = np.zeros((n, dim))
 
     # Negative sampling distribution ~ unigram^0.75
@@ -338,12 +319,12 @@ def _train_skipgram(
     neg_dist = np.power(counts + 1e-10, 0.75)
     neg_dist /= neg_dist.sum()
     neg_table_size = min(10_000_000, max(100_000, n * 100))
-    neg_table = np.random.choice(n, size=neg_table_size, p=neg_dist)
+    neg_table = rng.choice(n, size=neg_table_size, p=neg_dist)
     neg_ptr = 0
     n_negative = 5
 
     for _ in range(n_iter):
-        np.random.shuffle(walks)
+        rng.shuffle(walks)
         for walk in walks:
             walk_idx = [node_to_idx[w] for w in walk]
             for i, center in enumerate(walk_idx):
@@ -434,8 +415,11 @@ def node2vec(
     if isinstance(df, pl.LazyFrame):
         df = df.collect()
 
-    np.random.seed(42)
-    G = _build_weighted_graph(df, column_lhs, column_rhs, column_similarity, min_edge_weight)
+    rng = np.random.default_rng(42)
+    G = _build_graph(
+        df, column_lhs, column_rhs, column_similarity, min_edge_weight,
+        accumulate_weights=True, drop_self_loops=True, require_positive=True,
+    )
 
     if G.number_of_nodes() == 0:
         return pl.DataFrame(schema={"item": pl.Utf8, "embedding": pl.List(pl.Float64)})
@@ -450,9 +434,9 @@ def node2vec(
     alias_nodes = _precompute_node_aliases(G, nodes)
     alias_edges = _precompute_edge_aliases(G, p, q)
 
-    walks = _generate_walks(G, nodes, num_walks, walk_length, alias_nodes, alias_edges)
+    walks = _generate_walks(G, nodes, num_walks, walk_length, alias_nodes, alias_edges, rng)
     embeddings = _train_skipgram(
-        walks, node_to_idx, len(nodes), dim, window, n_iter, learning_rate
+        walks, node_to_idx, len(nodes), dim, window, n_iter, learning_rate, rng
     )
 
     records = [

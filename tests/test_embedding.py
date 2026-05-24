@@ -76,6 +76,24 @@ def test_node2vec():
     assert all(len(v) == 8 for v in result["embedding"].to_list())
 
 
+def test_embeddings_do_not_mutate_global_rng():
+    import numpy as np
+
+    df = _similarity_df()
+    before = np.random.get_state()
+    spectral_embedding(
+        df, column_lhs="lhs", column_rhs="rhs", column_similarity="similarity", dim=4
+    )
+    node2vec(
+        df, column_lhs="lhs", column_rhs="rhs", column_similarity="similarity",
+        dim=8, num_walks=5, walk_length=10, n_iter=2,
+    )
+    after = np.random.get_state()
+    assert before[0] == after[0]
+    assert np.array_equal(before[1], after[1])
+    assert before[2:] == after[2:]
+
+
 def test_node2vec_deterministic():
     df = _similarity_df()
     kwargs = dict(

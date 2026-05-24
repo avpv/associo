@@ -19,24 +19,54 @@ def _build_graph(
     column_rhs: str,
     column_similarity: str,
     min_edge_weight: float = 0.0,
+    *,
+    accumulate_weights: bool = False,
+    drop_self_loops: bool = False,
+    require_positive: bool = False,
 ) -> nx.Graph:
-    """Build a NetworkX graph from a Polars DataFrame of edges."""
+    """Build a NetworkX graph from a Polars DataFrame of edges.
+
+    Parameters
+    ----------
+    min_edge_weight : Keep only edges with ``similarity >= min_edge_weight``.
+    accumulate_weights : Sum weights of duplicate (lhs, rhs) pairs instead of
+        keeping the last one. Needed by embedding algorithms.
+    drop_self_loops : Drop edges where lhs == rhs (and null endpoints).
+    require_positive : Additionally drop edges with ``similarity <= 0``.
+    """
     validate_columns(df, [column_lhs, column_rhs, column_similarity], func_name="_build_graph")
 
     if isinstance(df, pl.LazyFrame):
         df = df.collect()
 
-    # Filter and extract columns directly — avoids slow iter_rows
-    filtered = df.filter(
-        pl.col(column_similarity).is_not_null()
-        & (pl.col(column_similarity) >= min_edge_weight)
+    predicate = pl.col(column_similarity).is_not_null() & (
+        pl.col(column_similarity) >= min_edge_weight
     )
+    if require_positive:
+        predicate = predicate & (pl.col(column_similarity) > 0)
+    if drop_self_loops:
+        predicate = (
+            predicate
+            & pl.col(column_lhs).is_not_null()
+            & pl.col(column_rhs).is_not_null()
+            & (pl.col(column_lhs) != pl.col(column_rhs))
+        )
+
+    # Filter and extract columns directly — avoids slow iter_rows
+    filtered = df.filter(predicate)
     lhs_col = filtered[column_lhs].to_list()
     rhs_col = filtered[column_rhs].to_list()
     w_col = filtered[column_similarity].to_list()
 
     G = nx.Graph()
-    G.add_weighted_edges_from(zip(lhs_col, rhs_col, w_col))
+    if accumulate_weights:
+        for lhs, rhs, w in zip(lhs_col, rhs_col, w_col):
+            if G.has_edge(lhs, rhs):
+                G[lhs][rhs]["weight"] += w
+            else:
+                G.add_edge(lhs, rhs, weight=w)
+    else:
+        G.add_weighted_edges_from(zip(lhs_col, rhs_col, w_col))
     return G
 
 
