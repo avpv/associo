@@ -69,14 +69,14 @@ def _laplace(num: pl.Expr, den: pl.Expr) -> pl.Expr:
 
 
 def _stage0_internals(
-    col_lhs_rhs_count: str, col_lhs_total_count: str,
-    col_rhs_total_count: str, col_total_count: str,
+    column_lhs_rhs_count: str, column_lhs_total_count: str,
+    column_rhs_total_count: str, column_total_count: str,
 ) -> list[pl.Expr]:
     """Cast input columns and compute contingency table cells."""
-    ab = pl.col(col_lhs_rhs_count).cast(pl.Float64)
-    a = pl.col(col_lhs_total_count).cast(pl.Float64)
-    b = pl.col(col_rhs_total_count).cast(pl.Float64)
-    n = pl.col(col_total_count).cast(pl.Float64)
+    ab = pl.col(column_lhs_rhs_count).cast(pl.Float64)
+    a = pl.col(column_lhs_total_count).cast(pl.Float64)
+    b = pl.col(column_rhs_total_count).cast(pl.Float64)
+    n = pl.col(column_total_count).cast(pl.Float64)
     return [
         ab.alias(_AB),
         a.alias(_A),
@@ -268,10 +268,10 @@ def _stage2_derived() -> dict[str, pl.Expr]:
 def association_measures(
     df: pl.DataFrame | pl.LazyFrame,
     *,
-    col_lhs_rhs_count: str = "lhs_rhs_count",
-    col_lhs_total_count: str = "lhs_total_count",
-    col_rhs_total_count: str = "rhs_total_count",
-    col_total_count: str = "total_count",
+    column_lhs_rhs_count: str = "lhs_rhs_count",
+    column_lhs_total_count: str = "lhs_total_count",
+    column_rhs_total_count: str = "rhs_total_count",
+    column_total_count: str = "total_count",
     measures: Sequence[str] | None = None,
 ) -> pl.DataFrame:
     """Calculate association measures from pre-aggregated counts.
@@ -283,10 +283,10 @@ def association_measures(
     Parameters
     ----------
     df : DataFrame/LazyFrame with columns for the four counts.
-    col_lhs_rhs_count : Column with count(lhs ∩ rhs).
-    col_lhs_total_count : Column with count(lhs).
-    col_rhs_total_count : Column with count(rhs).
-    col_total_count : Column with total transaction count.
+    column_lhs_rhs_count : Column with count(lhs ∩ rhs).
+    column_lhs_total_count : Column with count(lhs).
+    column_rhs_total_count : Column with count(rhs).
+    column_total_count : Column with total transaction count.
     measures : Subset of measure names to compute. None = all measures.
         Use ``associo.measures.ALL_MEASURES`` to see available names.
 
@@ -306,7 +306,7 @@ def association_measures(
 
     validate_columns(
         df,
-        [col_lhs_rhs_count, col_lhs_total_count, col_rhs_total_count, col_total_count],
+        [column_lhs_rhs_count, column_lhs_total_count, column_rhs_total_count, column_total_count],
         func_name="association_measures",
     )
 
@@ -314,7 +314,7 @@ def association_measures(
 
     # Stage 0: cast inputs + contingency table cells
     lf = lf.with_columns(_stage0_internals(
-        col_lhs_rhs_count, col_lhs_total_count, col_rhs_total_count, col_total_count,
+        column_lhs_rhs_count, column_lhs_total_count, column_rhs_total_count, column_total_count,
     ))
 
     # Stage 1: base metrics (support, confidence, etc.) — materialized

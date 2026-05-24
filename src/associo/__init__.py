@@ -11,7 +11,7 @@ from associo.graph import (
     label_propagation,
     label_propagation_overlapping,
 )
-from associo.embedding import embedding
+from associo.embedding import embedding, spectral_embedding, node2vec
 
 __all__ = [
     "ALL_MEASURES",
@@ -26,4 +26,6 @@ __all__ = [
     "label_propagation",
     "label_propagation_overlapping",
     "embedding",
+    "spectral_embedding",
+    "node2vec",
 ]
